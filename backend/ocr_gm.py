@@ -3,8 +3,9 @@ from transformers import AutoProcessor, AutoModelForImageTextToText
 from PIL import Image
 
 # 1. Defina o caminho do modelo e a imagem
+# MODEL_PATH = "mlx-community/GLM-OCR-8bit"  # Versão mais leve
 MODEL_PATH = "zai-org/GLM-OCR"  # O modelo será baixado do Hugging Face
-IMAGE_PATH = "caminho/para/sua/imagem_manuscrita.jpg"  # Substitua pelo caminho da sua imagem
+IMAGE_PATH = "caligrafia 1.jpeg"  # Substitua pelo caminho da sua imagem
 
 # 2. Carregue o processador e o modelo
 print("Carregando o modelo... Isso pode levar alguns minutos na primeira execução.")
