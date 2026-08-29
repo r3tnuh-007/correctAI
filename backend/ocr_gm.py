@@ -9,14 +9,17 @@ IMAGE_PATH = "caligrafia 1.jpeg"  # Substitua pelo caminho da sua imagem
 
 # 2. Carregue o processador e o modelo
 print("Carregando o modelo... Isso pode levar alguns minutos na primeira execução.")
-processor = AutoProcessor.from_pretrained(MODEL_PATH, trust_remote_code=True)
+processor = AutoProcessor.from_pretrained(
+    MODEL_PATH,
+    trust_remote_code=True
+)
+
 model = AutoModelForImageTextToText.from_pretrained(
     MODEL_PATH,
-    torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-    device_map="auto",
+    dtype=torch.float32,
+    device_map="cpu",
     trust_remote_code=True
 ).eval()
-
 # 3. Prepare a mensagem com a imagem
 try:
     image = Image.open(IMAGE_PATH).convert("RGB")
@@ -42,7 +45,9 @@ inputs = processor.apply_chat_template(
     add_generation_prompt=True,
     return_dict=True,
     return_tensors="pt"
-).to(model.device)
+)
+
+inputs = {k: v.to("cpu") for k, v in inputs.items()}
 
 # Remove token_type_ids se presente para evitar erros
 inputs.pop("token_type_ids", None)
