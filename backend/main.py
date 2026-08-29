@@ -1,4 +1,3 @@
-# main.py - Versão Simplificada e Funcional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import requests
@@ -6,36 +5,42 @@ import os
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
+from dotenv import load_dotenv
 
-# Configurar logging
+
+# Logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+load_dotenv()
 
-# --- Configurações ---
+
+# --- Configurations ---
 LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL", "http://127.0.0.1:8080/v1")
 CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db")
-COLLECTION_NAME = os.getenv("COLLECTION_NAME", "conhecimento_agricola")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 TOP_K_RETRIEVALS = int(os.getenv("TOP_K_RETRIEVALS", "3"))
+
 
 app = FastAPI(title="correctAI Backend API", version="1.0.0")
 
 
-# 🔧 CONFIGURAÇÃO CORS - Permitir requisições do frontend
+# 🌕 CORS CONFIGURATION - Allows requests from frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://127.0.0.1:5500",   # Live Server (VS Code)
-        "http://localhost:5500",    # Live Server (VS Code)
-        "http://127.0.0.1:8000",   # Própria API
-        "http://localhost:8000",    # Própria API
-        "http://127.0.0.1:3000",   # React/Next.js
-        "http://localhost:3000",    # React/Next.js
-        "*",                        # Permite todas (apenas para desenvolvimento)
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+        "*",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],  # Incluir OPTIONS
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # --- Modelos de Dados ---
 class QueryRequest(BaseModel):
