@@ -57,7 +57,7 @@ def queryExtractText(query):
         return response
 
 
-async def process_pdf(local_path: str) -> str:
+def process_pdf(local_path: str) -> str:
     """Function that converts some PDF pages to text
     Returns:
         list[Page]: List of the pages
@@ -78,7 +78,7 @@ async def process_pdf(local_path: str) -> str:
             page_query = generate_query(img)
             pages_queries[page_num] = queryExtractText(page_query)
             pages_queries[page_num].add_task()
-    pages_text = await generate_responses_text(pages_queries)
+    pages_text = generate_responses_text(pages_queries)
     print(f"{local_path}: Processing - DONE")
     return "\n".join([text for _, text in pages_text.items() if text is not None])
 
@@ -89,9 +89,10 @@ def process_image(img_pth: str):
         #img.show()
     except:
         print("nao abriu a imagem!")
+        return None
     page_query = generate_query(img)
     response = queryExtractText(page_query)
     print(response.content)
+    return response.content
 
-
-process_image("caligrafia 1.jpeg")
+process_image("caligrafia 3.jpg")
