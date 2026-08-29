@@ -108,36 +108,83 @@
 		<!-- Zona de upload -->
 		<div class="dropzone" id="dropzone">
 
-			<!-- Input normal -->
-			<input
-				type="file"
-				id="inputFicheiro"
-				accept="application/pdf"
-				hidden
-			/>
+    <input
+        type="file"
+        id="inputFicheiro"
+        accept="application/pdf"
+        hidden
+    />
 
-			<!-- Input da câmera -->
-			<input
-				type="file"
-				id="inputCamera"
-				accept="image/*"
-				capture="environment"
-				hidden
-			/>
+    <input
+        type="file"
+        id="inputCamera"
+        accept="image/*"
+        capture="environment"
+        hidden
+    />
 
-			<div class="dropzone__conteudo" id="dropzoneConteudo">
+    <!-- MODO PDF -->
+    <div class="dropzone__conteudo" id="dropzonePdf">
 
-				<span class="dropzone__icone">⇪</span>
+        <span class="dropzone__icone">⇪</span>
 
-				<p id="dropzoneTexto">
-					Arrasta o PDF aqui ou <u>clica para escolher</u>
-				</p>
+        <p id="dropzoneTextoPdf">
+            Arrasta o PDF aqui ou <u>clica para escolher</u>
+        </p>
 
-				<small id="dropzoneAjuda">1 ficheiro PDF</small>
+        <small id="dropzoneAjudaPdf">
+            1 ficheiro PDF
+        </small>
 
-			</div>
+    </div>
 
-		</div>
+
+    <!-- MODO FOTOS -->
+    <div class="dropzone__conteudo dropzone__fotos" id="dropzoneFotos">
+
+        <div class="dropzone__opcoes">
+
+            <!-- UPLOAD -->
+            <div class="dropzone__opcao" id="opcaoUpload">
+
+                <span class="dropzone__icone">⇪</span>
+
+                <p>
+                    <strong>Carregar fotos</strong>
+                </p>
+
+                <small>
+                    Escolher da galeria
+                </small>
+
+            </div>
+
+
+            <!-- CÂMERA -->
+            <div class="dropzone__opcao" id="opcaoCamera">
+
+                <span class="dropzone__icone">📷</span>
+
+                <p>
+                    <strong>Tirar foto</strong>
+                </p>
+
+                <small>
+                    Abrir câmera
+                </small>
+
+            </div>
+
+        </div>
+
+        <small class="dropzone__ajuda" id="dropzoneAjudaFotos">
+            Várias fotos — uma por página da prova
+        </small>
+
+    </div>
+
+</div>
+
 		<small class="campo__erro" data-erro="ficheiro"></small>
 
 		<!-- Pré-visualização das fotos -->
@@ -205,6 +252,63 @@
 	<div class="config__grupo">
 	<label for="txtCriterios">Critérios adicionais para a IA</label>
 	<textarea id="txtCriterios" rows="3" placeholder="Ex.: penalizar respostas sem justificação."></textarea>
+	</div>
+
+	<!-- ===== CHAVE DE CORREÇÃO (GABARITO) ===== -->
+	<div class="config__grupo">
+	<span class="config__rotulo">Chave de correção (gabarito) — opcional</span>
+	<p class="config__ajuda-texto">Carrega o gabarito para a IA comparar as respostas. Aceita PDF, foto da galeria ou foto tirada na hora.</p>
+
+	<div class="tipo-toggle tipo-toggle--compacto" role="radiogroup" aria-label="Formato da chave">
+		<label class="tipo-toggle__opcao">
+		<input type="radio" name="tipoFicheiroChave" value="pdf" checked />
+		<span>📄 PDF</span>
+		</label>
+		<label class="tipo-toggle__opcao">
+		<input type="radio" name="tipoFicheiroChave" value="foto" />
+		<span>📷 Fotos</span>
+		</label>
+	</div>
+
+	<div class="dropzone dropzone--compacta" id="dropzoneChave">
+
+		<input type="file" id="inputFicheiroChave" accept="application/pdf" hidden />
+		<input type="file" id="inputCameraChave" accept="image/*" capture="environment" hidden />
+
+		<!-- MODO PDF -->
+		<div class="dropzone__conteudo" id="dropzonePdfChave">
+		<span class="dropzone__icone">⇪</span>
+		<p id="dropzoneTextoPdfChave">Arrasta o PDF da chave aqui ou <u>clica para escolher</u></p>
+		<small id="dropzoneAjudaPdfChave">1 ficheiro PDF</small>
+		</div>
+
+		<!-- MODO FOTOS -->
+		<div class="dropzone__conteudo dropzone__fotos" id="dropzoneFotosChave">
+		<div class="dropzone__opcoes">
+			<div class="dropzone__opcao" id="opcaoUploadChave">
+			<span class="dropzone__icone">⇪</span>
+			<p><strong>Carregar fotos</strong></p>
+			<small>Escolher da galeria</small>
+			</div>
+			<div class="dropzone__opcao" id="opcaoCameraChave">
+			<span class="dropzone__icone">📷</span>
+			<p><strong>Tirar foto</strong></p>
+			<small>Abrir câmera</small>
+			</div>
+		</div>
+		<small class="dropzone__ajuda" id="dropzoneAjudaFotosChave">Várias fotos — uma por página da chave</small>
+		</div>
+
+	</div>
+
+	<small class="campo__erro" data-erro="ficheiroChave"></small>
+
+	<div class="preview-fotos" id="previewFotosChave"></div>
+
+	<div class="config__chave-acoes" id="chaveAcoes" hidden>
+		<span class="config__chave-resumo" id="chaveResumo"></span>
+		<button type="button" class="btn btn--pequeno" id="btnRemoverChave">Remover chave</button>
+	</div>
 	</div>
 
 	<button class="btn btn--primario btn--largo" id="btnGuardarConfig">Guardar configurações</button>

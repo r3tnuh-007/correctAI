@@ -692,6 +692,12 @@ h3 {
   font-size: 0.78rem;
 }
 
+/* Estado base: o modo Fotos só aparece quando o JS o activa
+   (evita os dois modos ficarem visíveis ao mesmo tempo) */
+.dropzone__fotos {
+  display: none;
+}
+
 .dropzone__opcoes {
   display: flex;
   justify-content: center;
@@ -1214,6 +1220,70 @@ h3 {
 
 
 /* ============================================================
+   CHAVE DE CORREÇÃO (CONFIGURAÇÕES)
+   ============================================================ */
+
+.config__ajuda-texto {
+  font-size: 0.78rem;
+
+  color: var(--texto-suave);
+
+  line-height: 1.4;
+
+  margin-bottom: 0.2rem;
+}
+
+.tipo-toggle--compacto .tipo-toggle__opcao span {
+  padding: 0.5rem;
+
+  font-size: 0.82rem;
+}
+
+.dropzone--compacta {
+  padding: 1.1rem 0.75rem;
+}
+
+.dropzone--compacta .dropzone__opcao {
+  padding: 0.9rem 0.6rem;
+}
+
+.dropzone--compacta .preview-fotos {
+  margin-top: 0.6rem;
+}
+
+.config__chave-acoes {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 0.6rem;
+
+  margin-top: 0.6rem;
+
+  padding: 0.6rem 0.75rem;
+
+  background: var(--superficie);
+
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+}
+
+.config__chave-resumo {
+  font-size: 0.8rem;
+
+  color: var(--texto);
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
    EXPORTAÇÃO DE RESULTADOS
    ============================================================ */
 
@@ -1456,6 +1526,102 @@ h3 {
 
 .preview-fotos__remover:hover {
   background: #dc2626;
+}
+
+
+/* ============================================================
+   CÂMERA NO DESKTOP (captura ao vivo)
+   ============================================================ */
+
+.camera-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  background: #000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-overlay__video {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.camera-overlay__barra {
+  position: fixed;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 1rem;
+
+  padding: 1.25rem 1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+}
+
+.camera-overlay__contador {
+  color: #fff;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  padding: 0.4rem 0.8rem;
+
+  border-radius: 999px;
+}
+
+.camera-overlay__capturar {
+  background: #f5b942;
+  color: #1a1405;
+
+  border: none;
+  border-radius: 999px;
+
+  padding: 0.85rem 1.6rem;
+
+  font-size: 1rem;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.camera-overlay__capturar:hover {
+  background: #e09c1f;
+}
+
+.camera-overlay__fechar {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+
+  border: none;
+  border-radius: 999px;
+
+  padding: 0.7rem 1.2rem;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.camera-overlay__fechar:hover {
+  background: rgba(0, 0, 0, 0.85);
 }
 
 
