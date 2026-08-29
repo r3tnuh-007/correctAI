@@ -5,6 +5,7 @@
    - Fila de provas + simulação de correção com IA
    - Painéis laterais: Chat e Configurações
    - Tema claro/escuro
+   - Integração com API via api-service.js
    ============================================================ */
 
 "use strict";
@@ -49,15 +50,13 @@ function limparErro(campo) {
 
 /* ============================================================
    MÓDULO REUTILIZÁVEL DE UPLOAD DE ANEXO
-   (usado tanto para a prova do estudante como para a chave
-   de correção — evita duplicar a lógica de PDF / galeria / câmera)
    ============================================================ */
 
 function criarUploadAnexo(cfg) {
   const estado = { tipo: "pdf", pdf: null, fotos: [] };
 
   const {
-    radios, // NodeList de <input type=radio>
+    radios,
     inputFicheiro,
     inputCamera,
     dropzone,
@@ -249,13 +248,13 @@ function criarUploadAnexo(cfg) {
   /* ---------- input de ficheiro (galeria / escolher) ---------- */
   inputFicheiro.addEventListener("change", function () {
     adicionarFicheiros(this.files);
-    this.value = ""; // permite escolher o mesmo ficheiro outra vez
+    this.value = "";
   });
 
   /* ---------- input de câmera (dispositivos móveis) ---------- */
   inputCamera.addEventListener("change", function () {
     const ficheiros = Array.from(this.files || []);
-    this.value = ""; // permite tirar outra foto imediatamente
+    this.value = "";
 
     if (!ficheiros.length) return;
 
@@ -300,8 +299,6 @@ function criarUploadAnexo(cfg) {
     limparErroCampo();
   }
 
-  // Sincroniza o visual com o estado inicial (evita os dois modos
-  // ficarem visíveis ao mesmo tempo antes de qualquer interação)
   aplicarVisualTipo();
 
   return {
@@ -314,8 +311,6 @@ function criarUploadAnexo(cfg) {
 
 /* ============================================================
    CÂMERA NO DESKTOP (getUserMedia)
-   Permite capturar várias fotos seguidas sem fechar a câmera —
-   só fecha quando o utilizador clica em "Fechar" ou prime Esc.
    ============================================================ */
 function abrirCameraDesktop(aoCapturar) {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -414,7 +409,7 @@ function abrirCameraDesktop(aoCapturar) {
 }
 
 /* ============================================================
-   ESTADO GLOBAL DA CONFIGURAÇÃO / CHAVE DE CORREÇÃO
+   ESTADO GLOBAL DA CONFIGURAÇÃO
    ============================================================ */
 const CHAVE_ARMAZENAMENTO = "corretoria_config_v1";
 
@@ -432,7 +427,7 @@ const configuracao = {
   criterios: "",
   chave: {
     tipo: "pdf",
-    nomes: [], // apenas metadados (nomes/tamanhos) — os ficheiros ficam em memória em anexoChave
+    nomes: [],
   },
 };
 
@@ -459,11 +454,13 @@ function carregarConfiguracaoLocal() {
 }
 
 /* ============================================================
-   INICIALIZAÇÃO GERAL (corre quando o DOM está pronto)
+   INICIALIZAÇÃO GERAL
    ============================================================ */
 document.addEventListener("DOMContentLoaded", inicializar);
 
 function inicializar() {
+  console.log("🚀 Inicializando CorretorIA...");
+
   carregarConfiguracaoLocal();
 
   /* ---------- Referências ---------- */
@@ -505,11 +502,15 @@ function inicializar() {
   const chaveResumo = document.getElementById("chaveResumo");
   const btnRemoverChave = document.getElementById("btnRemoverChave");
 
+  // Verifica se os elementos principais existem
+  if (!modalOverlay) console.warn("⚠️ modalOverlay não encontrado");
+  if (!formProva) console.warn("⚠️ formProva não encontrado");
+
   /* ============================================================
      UPLOAD DA PROVA (modal "+ Nova prova")
      ============================================================ */
   const anexoProva = criarUploadAnexo({
-    radios: formProva.tipoFicheiro,
+    radios: formProva ? formProva.tipoFicheiro : [],
     inputFicheiro: document.getElementById("inputFicheiro"),
     inputCamera: document.getElementById("inputCamera"),
     dropzone: document.getElementById("dropzone"),
@@ -574,53 +575,60 @@ function inicializar() {
     });
   }
 
-  // Restaura visualmente o resumo caso já exista chave guardada nesta sessão
   atualizarResumoChave();
 
   /* ============================================================
      MODAL DE NOVA PROVA
      ============================================================ */
   function abrirModal() {
+    if (!modalOverlay) return;
     modalOverlay.hidden = false;
     document.body.style.overflow = "hidden";
-    inputNome.focus();
+    if (inputNome) inputNome.focus();
+    console.log("📂 Modal aberto");
   }
 
   function fecharModal() {
+    if (!modalOverlay) return;
     modalOverlay.hidden = true;
     document.body.style.overflow = "";
     limparFormulario();
+    console.log("📂 Modal fechado");
   }
 
   function limparFormulario() {
-    formProva.reset();
+    if (formProva) formProva.reset();
     anexoProva.resetar();
     ["nome", "numero", "ficheiro"].forEach(limparErro);
-    inputNome.classList.remove("invalido");
-    inputNumero.classList.remove("invalido");
+    if (inputNome) inputNome.classList.remove("invalido");
+    if (inputNumero) inputNumero.classList.remove("invalido");
   }
 
-  btnAbrirTopo.addEventListener("click", abrirModal);
-  btnAbrirHero.addEventListener("click", abrirModal);
-  btnFecharModal.addEventListener("click", fecharModal);
+  if (btnAbrirTopo) btnAbrirTopo.addEventListener("click", abrirModal);
+  if (btnAbrirHero) btnAbrirHero.addEventListener("click", abrirModal);
+  if (btnFecharModal) btnFecharModal.addEventListener("click", fecharModal);
 
-  modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) fecharModal();
-  });
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) fecharModal();
+    });
+  }
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    if (!modalOverlay.hidden) {
+    if (modalOverlay && !modalOverlay.hidden) {
       fecharModal();
       return;
     }
-    if (painelConfig.classList.contains("aberto")) fecharPaineis();
-    else if (painelChat.classList.contains("aberto")) fecharPaineis();
+    if (painelConfig && painelConfig.classList.contains("aberto")) fecharPaineis();
+    else if (painelChat && painelChat.classList.contains("aberto")) fecharPaineis();
   });
 
   /* ---------- validação e envio ---------- */
   function validarFormulario() {
     let valido = true;
+
+    if (!inputNome || !inputNumero) return false;
 
     const nome = inputNome.value.trim();
     if (nome.length < 2) {
@@ -654,33 +662,43 @@ function inicializar() {
     return valido;
   }
 
-  formProva.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (!validarFormulario()) return;
+  if (formProva) {
+    formProva.addEventListener("submit", (e) => {
+      e.preventDefault();
+      console.log("📤 Formulário submetido");
 
-    const prova = {
-      id: Date.now(),
-      nome: inputNome.value.trim(),
-      numero: inputNumero.value.trim(),
-      tipo: anexoProva.estado.tipo,
-      ficheiros:
-        anexoProva.estado.tipo === "pdf"
-          ? [anexoProva.estado.pdf]
-          : [...anexoProva.estado.fotos],
-      estadoAnalise: "analise",
-      nota: null,
-    };
+      if (!validarFormulario()) {
+        console.warn("⚠️ Formulário inválido");
+        return;
+      }
 
-    adicionarProvaNaFila(prova);
-    fecharModal();
-    mostrarToast(`Prova de ${prova.nome} enviada para análise.`);
-    simularCorrecaoIA(prova);
-  });
+      const prova = {
+        id: Date.now(),
+        nome: inputNome ? inputNome.value.trim() : "",
+        numero: inputNumero ? inputNumero.value.trim() : "",
+        tipo: anexoProva.estado.tipo,
+        ficheiros:
+          anexoProva.estado.tipo === "pdf"
+            ? [anexoProva.estado.pdf]
+            : [...anexoProva.estado.fotos],
+        estadoAnalise: "analise",
+        nota: null,
+      };
+
+      console.log("📝 Prova criada:", prova);
+
+      adicionarProvaNaFila(prova);
+      fecharModal();
+      mostrarToast(`Prova de ${prova.nome} enviada para análise.`);
+      simularCorrecaoIA(prova);
+    });
+  }
 
   /* ============================================================
      FILA DE PROVAS
      ============================================================ */
   function adicionarProvaNaFila(prova) {
+    if (!secFila) return;
     secFila.hidden = false;
 
     const card = document.createElement("div");
@@ -700,7 +718,8 @@ function inicializar() {
       <div class="prova-card__estado estado--analise" data-estado>A analisar…</div>
     `;
 
-    listaProvas.prepend(card);
+    if (listaProvas) listaProvas.prepend(card);
+    console.log("✅ Prova adicionada à fila:", prova.nome);
   }
 
   function atualizarProvaNaFila(prova) {
@@ -724,28 +743,12 @@ function inicializar() {
         exportarProvasParaCsv([prova]);
       });
     }
+    console.log("✅ Prova atualizada:", prova.nome, "Nota:", prova.nota);
   }
 
   /* ============================================================
-     SIMULAÇÃO DE CORREÇÃO COM IA
-     (ponto de integração com o backend/IA real — substituir o
-     conteúdo desta função por uma chamada à API de correção)
+     FUNÇÃO DE CÁLCULO DE NOTA SIMULADA (FALLBACK)
      ============================================================ */
-  const provasPorId = new Map();
-
-  function simularCorrecaoIA(prova) {
-    provasPorId.set(prova.id, prova);
-
-    const tempoBase = 1800 + Math.random() * 1600;
-
-    setTimeout(() => {
-      prova.nota = calcularNotaSimulada();
-      prova.estadoAnalise = "concluido";
-      atualizarProvaNaFila(prova);
-      mostrarToast(`✅ Correção concluída: ${prova.nome} obteve ${prova.nota}/${configuracao.notaMax}.`);
-    }, tempoBase);
-  }
-
   function calcularNotaSimulada() {
     const rigorFactor = {
       flexivel: 0.9,
@@ -761,6 +764,73 @@ function inicializar() {
 
     const nota = Math.round(fracao * configuracao.notaMax * 10) / 10;
     return nota;
+  }
+
+  /* ============================================================
+     CORREÇÃO COM IA - INTEGRAÇÃO COM API
+     ============================================================ */
+
+  // Verifica se a API Service está disponível
+  const apiDisponivel = typeof getApiService === 'function' && typeof enviarProvaParaCorrecao === 'function';
+
+  async function simularCorrecaoIA(prova) {
+    const provasPorId = window._provasPorId || new Map();
+    provasPorId.set(prova.id, prova);
+    window._provasPorId = provasPorId;
+
+    try {
+      if (apiDisponivel) {
+        mostrarToast(`⏳ Enviando "${prova.nome}" para correção...`);
+        console.log("📡 Enviando para API...");
+
+        // Envia para a API usando a função unificada
+        const resultado = await enviarProvaParaCorrecao(
+          prova,
+          prova.ficheiros,
+          configuracao,
+          anexoChave ? anexoChave.estado : null
+        );
+
+        console.log("📥 Resposta da API:", resultado);
+
+        // Atualiza a prova com os resultados
+        prova.nota = resultado.nota || 0;
+        prova.notaMaxima = resultado.notaMaxima || configuracao.notaMax;
+        prova.detalhes = resultado.detalhes || null;
+        prova.comentario = resultado.comentario || 'Correção concluída.';
+        prova.estadoAnalise = 'concluido';
+
+        // Atualiza a fila
+        atualizarProvaNaFila(prova);
+
+        const emoji = resultado.status === 'fallback' ? '⚠️' : '✅';
+        mostrarToast(`${emoji} Correção concluída: ${prova.nome} obteve ${prova.nota}/${prova.notaMaxima}`);
+      } else {
+        // Modo offline - usa simulação local
+        console.warn('⚠️ API Service não disponível, usando simulação local');
+        simulacaoLocal(prova);
+      }
+    } catch (error) {
+      console.error('❌ Erro na correção:', error);
+      // Fallback para simulação local
+      simulacaoLocal(prova);
+    }
+  }
+
+  function simulacaoLocal(prova) {
+    const tempoBase = 1800 + Math.random() * 1600;
+
+    mostrarToast(`⏳ Processando "${prova.nome}" localmente...`);
+
+    setTimeout(() => {
+      prova.nota = calcularNotaSimulada();
+      prova.notaMaxima = configuracao.notaMax;
+      prova.estadoAnalise = 'concluido';
+      prova.comentario = 'Simulação local (modo offline)';
+      atualizarProvaNaFila(prova);
+      mostrarToast(`⚠️ Correção local: ${prova.nome} obteve ${prova.nota}/${configuracao.notaMax}`);
+      console.log("📊 Correção local concluída:", prova);
+    }, tempoBase);
   }
 
   /* ============================================================
@@ -797,10 +867,12 @@ function inicializar() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    mostrarToast("✅ CSV exportado com sucesso!");
   }
 
   if (btnExportarTudo) {
     btnExportarTudo.addEventListener("click", () => {
+      const provasPorId = window._provasPorId || new Map();
       const concluidas = Array.from(provasPorId.values()).filter(
         (p) => p.estadoAnalise === "concluido",
       );
@@ -816,31 +888,32 @@ function inicializar() {
      PAINÉIS LATERAIS (Chat e Configurações)
      ============================================================ */
   function algumPainelAberto() {
-    return painelChat.classList.contains("aberto") || painelConfig.classList.contains("aberto");
+    return (painelChat && painelChat.classList.contains("aberto")) ||
+           (painelConfig && painelConfig.classList.contains("aberto"));
   }
 
   function atualizarOverlay() {
-    painelOverlay.hidden = !algumPainelAberto();
+    if (painelOverlay) painelOverlay.hidden = !algumPainelAberto();
   }
 
   function abrirChat() {
-    painelConfig.classList.remove("aberto");
-    painelChat.classList.add("aberto");
-    btnAbrirChat.hidden = true;
+    if (painelConfig) painelConfig.classList.remove("aberto");
+    if (painelChat) painelChat.classList.add("aberto");
+    if (btnAbrirChat) btnAbrirChat.hidden = true;
     atualizarOverlay();
   }
 
   function fecharPaineis() {
-    painelChat.classList.remove("aberto");
-    painelConfig.classList.remove("aberto");
-    btnAbrirChat.hidden = false;
+    if (painelChat) painelChat.classList.remove("aberto");
+    if (painelConfig) painelConfig.classList.remove("aberto");
+    if (btnAbrirChat) btnAbrirChat.hidden = false;
     atualizarOverlay();
   }
 
   function abrirConfig() {
-    painelChat.classList.remove("aberto");
-    btnAbrirChat.hidden = false;
-    painelConfig.classList.add("aberto");
+    if (painelChat) painelChat.classList.remove("aberto");
+    if (btnAbrirChat) btnAbrirChat.hidden = false;
+    if (painelConfig) painelConfig.classList.add("aberto");
     atualizarOverlay();
   }
 
@@ -854,16 +927,16 @@ function inicializar() {
   if (painelOverlay) painelOverlay.addEventListener("click", fecharPaineis);
 
   /* ============================================================
-     CHAT COM A IA (simulado — ligar aqui o backend/IA real)
+     CHAT COM A IA (simulado)
      ============================================================ */
   if (chatForm) {
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const texto = chatInput.value.trim();
+      const texto = chatInput ? chatInput.value.trim() : "";
       if (!texto) return;
 
       adicionarMensagemChat(texto, "eu");
-      chatInput.value = "";
+      if (chatInput) chatInput.value = "";
 
       setTimeout(() => {
         adicionarMensagemChat(gerarRespostaChat(texto), "ia");
@@ -872,6 +945,7 @@ function inicializar() {
   }
 
   function adicionarMensagemChat(texto, autor) {
+    if (!chatMensagens) return;
     const msg = document.createElement("div");
     msg.className = autor === "eu" ? "msg msg--eu" : "msg msg--ia";
     msg.textContent = texto;
@@ -984,4 +1058,5 @@ function inicializar() {
   }
 
   iniciarTema();
+  console.log("✅ CorretorIA inicializado com sucesso!");
 }
