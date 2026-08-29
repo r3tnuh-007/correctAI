@@ -19,10 +19,10 @@ chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
 try:
     collection = chroma_client.get_collection(name=COLLECTION_NAME)
-    logger.info(f"✅ Coleção '{COLLECTION_NAME}' já existe.")
+    logger.info(f"🟢 Coleção '{COLLECTION_NAME}' já existe.")
 except chromadb.errors.NotFoundError:
     collection = chroma_client.create_collection(name=COLLECTION_NAME)
-    logger.info(f"✅ Nova coleção '{COLLECTION_NAME}' criada.")
+    logger.info(f"🟢 Nova coleção '{COLLECTION_NAME}' criada.")
 
 # Função para ler PDFs
 def load_pdf(file_path: str) -> str:
@@ -70,7 +70,7 @@ def load_documents_from_folder(folder_path: str):
                     'text': chunk,
                     'metadata': {"source": os.path.basename(file_path), "type": "pdf"}
                 })
-            logger.info(f"   ✅ {len(chunks)} chunks criados")
+            logger.info(f"   🟢 {len(chunks)} chunks criados")
 
     # TXTs
     txt_files = glob.glob(os.path.join(folder_path, "*.txt"))
@@ -87,7 +87,7 @@ def load_documents_from_folder(folder_path: str):
                     'text': chunk,
                     'metadata': {"source": os.path.basename(file_path), "type": "txt"}
                 })
-            logger.info(f"   ✅ {len(chunks)} chunks criados")
+            logger.info(f"   🟢 {len(chunks)} chunks criados")
 
     return documents
 
@@ -109,8 +109,8 @@ else:
             documents=[doc['text'] for doc in batch],
             metadatas=[doc['metadata'] for doc in batch]
         )
-        logger.info(f"✅ Indexados {len(batch)} chunks...")
+        logger.info(f"🟢 Indexados {len(batch)} chunks...")
 
-    logger.info("✅ Ingestão concluída com sucesso!")
+    logger.info("🟢 Ingestão concluída com sucesso!")
 
 logger.info(f"📊 Total de documentos na coleção: {collection.count()}")

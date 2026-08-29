@@ -17,7 +17,7 @@ CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "conhecimento_agricola")
 TOP_K_RETRIEVALS = int(os.getenv("TOP_K_RETRIEVALS", "3"))
 
-app = FastAPI(title="API RAG Agrícola")
+app = FastAPI(title="correctAI Backend API", version="1.0.0")
 
 
 # 🔧 CONFIGURAÇÃO CORS - Permitir requisições do frontend
@@ -30,10 +30,10 @@ app.add_middleware(
         "http://localhost:8000",    # Própria API
         "http://127.0.0.1:3000",   # React/Next.js
         "http://localhost:3000",    # React/Next.js
-        "*",                        # 🔧 Permite todas (apenas para desenvolvimento)
+        "*",                        # Permite todas (apenas para desenvolvimento)
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],  # 🔧 Incluir OPTIONS
+    allow_methods=["GET", "POST", "OPTIONS"],  # Incluir OPTIONS
     allow_headers=["*"],
 )
 
@@ -59,7 +59,7 @@ try:
         def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
             self.model = SentenceTransformer(model_name)
             self.model_name = model_name
-            logger.info(f"✅ Modelo de embedding carregado: {model_name}")
+            logger.info(f"🟢 Modelo de embedding carregado: {model_name}")
 
         def __call__(self, texts):
             """Gera embeddings para os textos fornecidos."""
@@ -79,21 +79,21 @@ try:
     try:
         # Tentar obter a coleção existente
         collection = chroma_client.get_collection(name=COLLECTION_NAME)
-        logger.info(f"✅ Coleção '{COLLECTION_NAME}' encontrada.")
+        logger.info(f"🟢 Coleção '{COLLECTION_NAME}' encontrada.")
     except chromadb.errors.NotFoundError:
         # Criar nova coleção
         collection = chroma_client.create_collection(name=COLLECTION_NAME)
-        logger.info(f"✅ Nova coleção '{COLLECTION_NAME}' criada.")
+        logger.info(f"🟢 Nova coleção '{COLLECTION_NAME}' criada.")
 
     # Verificar documentos
     if collection:
         count = collection.count()
-        logger.info(f"📊 Coleção tem {count} documentos.")
+        logger.info(f"‼️ Coleção tem {count} documentos.")
         if count == 0:
             logger.warning("⚠️ A coleção está vazia! Execute 'python ingest.py' para indexar documentos.")
 
 except Exception as e:
-    logger.error(f"❌ Erro ao inicializar ChromaDB: {e}")
+    logger.error(f"🚫 Erro ao inicializar ChromaDB: {e}")
     collection = None
 
 # --- Função de Busca ---
@@ -113,11 +113,11 @@ def buscar_contexto(pergunta: str, top_k: int = TOP_K_RETRIEVALS):
         documentos = results['documents'][0] if results.get('documents') else []
         metadados = results['metadatas'][0] if results.get('metadatas') else []
 
-        logger.info(f"✅ Encontrados {len(documentos)} documentos relevantes.")
+        logger.info(f"🟢 Encontrados {len(documentos)} documentos relevantes.")
         return documentos, metadados
 
     except Exception as e:
-        logger.error(f"❌ Erro na busca: {e}")
+        logger.error(f"🚫 Erro na busca: {e}")
         return [], []
 
 # --- Função para Gerar Resposta ---
@@ -171,7 +171,7 @@ Answer:"""
         logger.error("🔌 Erro de conexão com o llama-server")
         return "Desculpe, não foi possível conectar ao servidor do modelo."
     except requests.exceptions.RequestException as e:
-        logger.error(f"❌ Erro ao chamar o llama-server: {e}")
+        logger.error(f"🚫 Erro ao chamar o llama-server: {e}")
         return f"Erro: {str(e)}"
 
 # --- Endpoint da API ---
@@ -199,7 +199,7 @@ async def perguntar(request: QueryRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Erro inesperado: {e}")
+        logger.error(f"🚫 Erro inesperado: {e}")
         raise HTTPException(status_code=500, detail=f"Erro: {str(e)}")
 
 # --- Health Check ---
