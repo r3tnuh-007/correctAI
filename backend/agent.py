@@ -64,23 +64,5 @@ REMEMBER: Do not just list the data. Synthesize it into a narrative that mirrors
 
     return response.content
 
-prompt_template2 = ChatPromptTemplate.from_messages(
-        [
-            ("system", """Es um agente que diz oi"""),
-            ("user", """Diz oi"""),
-        ]
-    )
 
-def testes():
-	chain1 = prompt_template2 | gpt_4o
 
-	prompt = "eu sou o Anter, diz oi para mim"
-
-	responde = gpt_4o.invoke(prompt)
-
-	return responde
-
-prompt = "eu sou o Anter, diz oi para mim"
-
-responde = gpt_4o.invoke(prompt)
-print(responde.content)
