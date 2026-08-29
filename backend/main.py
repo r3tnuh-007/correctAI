@@ -1,11 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, File, UploadFile, HTTPException, status
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import requests
 import os
 import logging
-from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from dotenv import load_dotenv
+from datetime import datetime
+import shutil
+from pathlib import Path
+from process_image import *
 
 
 # Logging configuration
@@ -19,6 +25,10 @@ LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL", "http://127.0.0.1:8080/v1")
 CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 TOP_K_RETRIEVALS = int(os.getenv("TOP_K_RETRIEVALS", "3"))
+IMAGES_DIR = Path("img")
+IMAGES_DIR.mkdir(exist_ok=True)
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 
 
 app = FastAPI(title="correctAI Backend API", version="1.0.0")
@@ -40,80 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# --- Modelos de Dados ---
-class QueryRequest(BaseModel):
-    pergunta: str
-    top_k: Optional[int] = TOP_K_RETRIEVALS
-
-class QueryResponse(BaseModel):
-    pergunta: str
-    resposta: str
-    fontes: List[str] = []
-
-
-# --- CromaDB Initialization with a simplified embedding function ---
-collection = None
-try:
-    import chromadb
-    from sentence_transformers import SentenceTransformer
-    # ‼️ SIMPLIFIED: Embedding function as a simple class
-    class SimpleEmbedding:
-        def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
-            self.model = SentenceTransformer(model_name)
-            self.model_name = model_name
-            logger.info(f"🟢 Embedding model loadded: {model_name}")
-        def __call__(self, texts):
-            """Generate embeddings for the given text."""
-            if not texts:
-                return []
-            # Convert to a float list
-            embeddings = self.model.encode(texts, convert_to_numpy=True)
-            return embeddings.tolist()
-    # 🔧 Using the embedding function with the correct name
-    embedding_fn = SimpleEmbedding()
-    # Inicializing ChromaDB
-    chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-    # Create the collection without the embedding first
-    try:
-        # Try to obtain the existing collection
-        collection = chroma_client.get_collection(name=COLLECTION_NAME)
-        logger.info(f"🟢 Collection '{COLLECTION_NAME}' founded.")
-    except chromadb.errors.NotFoundError:
-        # Create a new collection
-        collection = chroma_client.create_collection(name=COLLECTION_NAME)
-        logger.info(f"🟢 New collection '{COLLECTION_NAME}' created.")
-    # Verificar documentos
-    if collection:
-        count = collection.count()
-        logger.info(f"‼️ Collection has {count} documents.")
-        if count == 0:
-            logger.warning("⚠️ The collection is empty! Execute 'python ingest.py' to index documents.")
-except Exception as e:
-    logger.error(f"🚫 Error initializing ChromaDB: {e}")
-    collection = None
-
-
-# --- Search function ---
-def buscar_contexto(pergunta: str, top_k: int = TOP_K_RETRIEVALS):
-    """Search relevant documents on ChromaDB."""
-    if collection is None:
-        logger.warning("⚠️ ChromaDB not initialized.")
-        return [], []
-    try:
-        # ‼️ Using the embedding function directly on search
-        results = collection.query(
-            query_texts=[pergunta],
-            n_results=top_k
-        )
-        documentos = results['documents'][0] if results.get('documents') else []
-        metadados = results['metadatas'][0] if results.get('metadatas') else []
-        logger.info(f"🟢 Found {len(documentos)} relevant documents.")
-        return documentos, metadados
-    except Exception as e:
-        logger.error(f"🚫 Erro na busca: {e}")
-        return [], []
 
 
 def generating_response(pergunta: str, contexto: str) -> str:
@@ -167,6 +103,7 @@ Answer:"""
         return f"Erro: {str(e)}"
 
 
+"""
 # --- submitting the images ---
 @app.post("/perguntar", response_model=QueryResponse)
 async def perguntar(request: QueryRequest):
@@ -189,7 +126,7 @@ async def perguntar(request: QueryRequest):
     except Exception as e:
         logger.error(f"🚫 Erro inesperado: {e}")
         raise HTTPException(status_code=500, detail=f"Erro: {str(e)}")
-
+"""
 
 # --- Health Check ---
 @app.get("/health")
@@ -197,9 +134,137 @@ async def health_check():
     status = {
         "status": "ok",
         "chromadb": "conectado" if collection else "desconectado",
+        "timestamp": datetime.now().isoformat(),
         "documentos": collection.count() if collection else 0,
     }
     return status
+
+
+
+
+# ============================================
+# FUNÇÕES AUXILIARES
+# ============================================
+def validate_image(filename: str) -> bool:
+    """Valida se a extensão do arquivo é permitida"""
+    ext = Path(filename).suffix.lower()
+    return ext in ALLOWED_EXTENSIONS
+
+def get_unique_filename(original_filename: str) -> str:
+    """Generate a unique name using timestamp"""
+    ext = Path(original_filename).suffix
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+    return f"image_{timestamp}{ext}"
+
+# ============================================
+# ENDPOINTS
+# ============================================
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "API Working!!",
+        "endpoints": {
+            "/upload": "POST - Upload the image",
+            "/health": "GET - Verify the health of the API",
+            "list": "GET - List of all images uploaded"
+        }
+    }
+
+
+@app.post("/upload")
+async def upload_image(
+    file: UploadFile = File(
+        ...,
+        description="Image file for download",
+        example="image.jpg"
+    )
+):
+    """
+    Endpoint para upload de imagens
+    - Recebe um arquivo de imagem
+    - Valida formato e tamanho
+    - Salva no diretório 'img/'
+    - Retorna informações do arquivo salvo
+    """
+    try:
+        if not file.filename:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No image sent"
+            )
+        if not validate_image(file.filename):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported format. Use: {', '.join(ALLOWED_EXTENSIONS)}"
+            )
+        file_size = 0
+        file_content = await file.read()
+        file_size = len(file_content)
+        if file_size > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Image too big. Max: {MAX_FILE_SIZE // (1024*1024)} MB"
+            )
+        #Name generated
+        unique_filename = get_unique_filename(file.filename)
+        file_path = IMAGES_DIR / unique_filename
+        # Save the file
+        with open(file_path, "wb") as buffer:
+            buffer.write(file_content)
+        content_text = await process_image(file_path)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": True,
+                "message": "Image saved successfully!",
+                "data": {
+                    "filename": unique_filename,
+                    "original_filename": file.filename,
+                    "file_path": str(file_path),
+                    "file_size": file_size,
+                    "file_size_mb": round(file_size / (1024 * 1024), 2),
+                    "uploaded_at": datetime.now().isoformat(),
+                    "content_text": content_text
+                }
+            }
+        )
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Trata erros inesperados
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing upload: {str(e)}"
+        )
+
+
+@app.get("/images")
+async def list_images():
+    """List all images saved at directory"""
+    try:
+        images = []
+        for file_path in IMAGES_DIR.iterdir():
+            if file_path.is_file():
+                stat = file_path.stat()
+                images.append({
+                    "filename": file_path.name,
+                    "size_bytes": stat.st_size,
+                    "size_mb": round(stat.st_size / (1024 * 1024), 2),
+                    "modified": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                })
+        return {
+            "success": True,
+            "count": len(images),
+            "images": sorted(images, key=lambda x: x["modified"], reverse=True)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error listing the images: {str(e)}"
+        )
 
 
 if __name__ == "__main__":

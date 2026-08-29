@@ -48,12 +48,12 @@ def queryExtractText(query):
         response = llm.invoke(query)
         return response
 
-
+"""
 def process_pdf(local_path: str) -> str:
-    """Function that converts some PDF pages to text
+    ""Function that converts some PDF pages to text
     Returns:
         list[Page]: List of the pages
-    """
+    ""
     print(f"{local_path}: Processing")
     # Open the temporary PDF file with PyMuPDF
     MAX_PAGES = 5
@@ -73,9 +73,10 @@ def process_pdf(local_path: str) -> str:
     pages_text = generate_responses_text(pages_queries)
     print(f"{local_path}: Processing - DONE")
     return "\n".join([text for _, text in pages_text.items() if text is not None])
+"""
 
 
-def process_image(img_pth: str):
+async def process_image(img_pth: str):
     try:
         img = Image.open(img_pth)
         #img.show()
