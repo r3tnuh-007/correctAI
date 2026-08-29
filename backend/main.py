@@ -64,7 +64,6 @@ try:
             self.model = SentenceTransformer(model_name)
             self.model_name = model_name
             logger.info(f"🟢 Embedding model loadded: {model_name}")
-
         def __call__(self, texts):
             """Generate embeddings for the given text."""
             if not texts:
@@ -103,7 +102,7 @@ def buscar_contexto(pergunta: str, top_k: int = TOP_K_RETRIEVALS):
         logger.warning("⚠️ ChromaDB not initialized.")
         return [], []
     try:
-        # 🔧 Using the embedding function directly on search
+        # ‼️ Using the embedding function directly on search
         results = collection.query(
             query_texts=[pergunta],
             n_results=top_k
