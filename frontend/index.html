@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CorretorIA — Correção de Provas com Inteligência Artificial</title>
+<meta name="description" content="Sistema web com IA para correção automática de provas. Carrega provas em PDF ou fotos e recebe a correção." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ===== CABEÇALHO ===== -->
+<header class="topo">
+	<div class="topo__logo">
+	<span class="topo__icone">✦</span>
+	<span>Corretor<strong>IA</strong></span>
+	</div>
+	<div class="topo__acoes">
+	<button class="btn btn--icone" id="btnChat" aria-label="Abrir chat com a IA" title="Chat com a IA">💬</button>
+	<button class="btn btn--icone" id="btnConfig" aria-label="Abrir configurações" title="Configurações">⚙️</button>
+	<button class="btn btn--primario" id="btnAbrirModalTopo">+ Nova prova</button>
+	</div>
+</header>
+
+
+<!-- ===== HERO ===== -->
+<main class="container">
+	<section class="hero">
+	<span class="hero__tag">Correção automática com IA</span>
+	<h1>Corrige provas em <em>segundos</em>,<br />não em horas.</h1>
+	<p>
+		Carrega a prova do estudante em <strong>PDF</strong> ou em <strong>fotos</strong>
+		(uma por página) e a nossa IA analisa, corrige e atribui a nota automaticamente.
+	</p>
+	<button class="btn btn--grande" id="btnAbrirModalHero">
+		<span class="btn__icone">⇪</span> Carregar prova para correção
+	</button>
+
+	<div class="hero__passos">
+		<div class="passo"><span>1</span> Carrega a prova</div>
+		<div class="passo__seta">→</div>
+		<div class="passo"><span>2</span> A IA corrige</div>
+		<div class="passo__seta">→</div>
+		<div class="passo"><span>3</span> Recebe a nota</div>
+	</div>
+	</section>
+
+	<!-- ===== FILA DE PROVAS ===== -->
+	<section class="fila" id="secFila" hidden>
+	<div class="fila__topo">
+		<h2>Provas em análise</h2>
+		<button class="btn btn--pequeno" id="btnExportarTudo">⬇ Exportar tudo (CSV)</button>
+	</div>
+	<div class="fila__lista" id="listaProvas"></div>
+	</section>
+
+</main>
+
+<!-- ===== MODAL (popup) DE CARREGAMENTO ===== -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+	<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+	<button class="modal__fechar" id="btnFecharModal" aria-label="Fechar">✕</button>
+
+	<h2 id="modalTitulo">Carregar prova</h2>
+	<p class="modal__sub">Preenche os dados do estudante e anexa a prova.</p>
+
+	<form id="formProva" novalidate>
+		<!-- Dados do estudante -->
+		<div class="campo">
+		<label for="inputNome">Nome do estudante</label>
+		<input type="text" id="inputNome" placeholder="Ex.: Bruno Sebastião" maxlength="100" required />
+		<small class="campo__erro" data-erro="nome"></small>
+		</div>
+
+		<div class="campo">
+		<label for="inputNumero">Número de estudante</label>
+		<input type="text" id="inputNumero" placeholder="Ex.: 2026-0042" maxlength="20" required />
+		<small class="campo__erro" data-erro="numero"></small>
+		</div>
+
+		<!-- Escolha do tipo de ficheiro -->
+		<div class="campo">
+		<span class="campo__rotulo">Formato da prova</span>
+		<div class="tipo-toggle" role="radiogroup">
+			<label class="tipo-toggle__opcao">
+			<input type="radio" name="tipoFicheiro" value="pdf" checked />
+			<span>📄 PDF</span>
+			</label>
+			<label class="tipo-toggle__opcao">
+			<input type="radio" name="tipoFicheiro" value="foto" />
+			<span>📷 Fotos</span>
+			</label>
+		</div>
+		</div>
+
+		<!-- Zona de upload -->
+		<div class="dropzone" id="dropzone">
+		<input type="file" id="inputFicheiro" accept="application/pdf" hidden />
+		<div class="dropzone__conteudo">
+			<span class="dropzone__icone">⇪</span>
+			<p id="dropzoneTexto">Arrasta o PDF aqui ou <u>clica para escolher</u></p>
+			<small id="dropzoneAjuda">1 ficheiro PDF</small>
+		</div>
+		</div>
+		<small class="campo__erro" data-erro="ficheiro"></small>
+
+		<!-- Pré-visualização das fotos -->
+		<div class="preview-fotos" id="previewFotos"></div>
+
+		<button type="submit" class="btn btn--primario btn--largo" id="btnSubmeter">
+		Enviar para correção
+		</button>
+	</form>
+	</div>
+</div>
+
+<!-- ===== PAINEL LATERAL ESQUERDO: CHAT COM A IA ===== -->
+<aside class="chat" id="painelChat" aria-label="Chat com a IA">
+	<div class="chat__topo">
+	<h3>💬 Assistente IA</h3>
+	<button class="chat__fechar" id="btnFecharChat" aria-label="Ocultar chat">✕</button>
+	</div>
+	<div class="chat__mensagens" id="chatMensagens">
+	<div class="msg msg--ia">Olá! Posso ajudar-te a definir critérios, explicar notas ou rever correções. O que precisas?</div>
+	</div>
+	<form class="chat__form" id="chatForm">
+	<input type="text" id="chatInput" placeholder="Escreve a tua mensagem…" autocomplete="off" />
+	<button type="submit" class="btn btn--primario" aria-label="Enviar">➤</button>
+	</form>
+</aside>
+<button class="chat__abrir" id="btnAbrirChat" aria-label="Mostrar chat">💬</button>
+
+<!-- ===== PAINEL LATERAL DIREITO: CONFIGURAÇÕES ===== -->
+<aside class="config" id="painelConfig" aria-label="Configurações de avaliação">
+	<div class="config__topo">
+	<h3>⚙️ Configurações</h3>
+	<button class="config__fechar" id="btnFecharConfig" aria-label="Fechar configurações">✕</button>
+	</div>
+
+	<div class="config__grupo">
+	<label for="selRigor">Nível de rigorosidade</label>
+	<select id="selRigor">
+		<option value="flexivel">Flexível — valoriza o raciocínio</option>
+		<option value="equilibrado" selected>Equilibrado — padrão</option>
+		<option value="rigoroso">Rigoroso — exige precisão</option>
+		<option value="muito-rigoroso">Muito rigoroso — sem margem</option>
+	</select>
+	</div>
+
+	<div class="config__grupo">
+	<label for="rangeTolerancia">Tolerância a erros ortográficos: <strong id="valTolerancia">30%</strong></label>
+	<input type="range" id="rangeTolerancia" min="0" max="100" step="5" value="30" />
+	</div>
+
+	<div class="config__grupo">
+	<label for="inputNotaMax">Nota máxima</label>
+	<input type="number" id="inputNotaMax" min="5" max="100" value="20" />
+	</div>
+
+	<div class="config__grupo">
+	<span class="config__rotulo">Métricas avaliadas</span>
+	<label class="check"><input type="checkbox" data-metrica="conteudo" checked /> Correção do conteúdo</label>
+	<label class="check"><input type="checkbox" data-metrica="raciocinio" checked /> Raciocínio e método</label>
+	<label class="check"><input type="checkbox" data-metrica="organizacao" /> Organização e estrutura</label>
+	<label class="check"><input type="checkbox" data-metrica="ortografia" /> Ortografia e gramática</label>
+	<label class="check"><input type="checkbox" data-metrica="caligrafia" /> Legibilidade da caligrafia</label>
+	</div>
+
+	<div class="config__grupo">
+	<label for="txtCriterios">Critérios adicionais para a IA</label>
+	<textarea id="txtCriterios" rows="3" placeholder="Ex.: penalizar respostas sem justificação."></textarea>
+	</div>
+
+	<button class="btn btn--primario btn--largo" id="btnGuardarConfig">Guardar configurações</button>
+</aside>
+
+<div class="painel-overlay" id="painelOverlay" hidden></div>
+
+<!-- Notificações -->
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/app.js"></script>
+
+</body>
+</html>
