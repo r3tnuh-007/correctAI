@@ -1,10 +1,13 @@
 NAME = correctAI
 
+
 all: $(NAME)
+
 
 $(NAME):
 	@cd backend
 	@python main.py 
+
 
 install:
 	@cd backend
@@ -14,7 +17,9 @@ install:
 	@clear
 	@python main.py
 
+
 clean_venv:
 	rm -fr backend/.venv
+
 
 .PHONY: $(NAME) install clean_venv

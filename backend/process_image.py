@@ -5,34 +5,27 @@ import base64
 from io import BytesIO
 from agent import gpt_4o as llm
 
+
 def encode_pil_image(pil_image: Image) -> str:
     """Function that encodes a PIL image into base 64 string
-
     Args:
         pil_image (Image): PIL image to be converted
-
     Returns:
         str: image converted into base 64 string
     """
-
     buffered = BytesIO()
     pil_image.save(buffered, format="PNG")
-
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
 def generate_query(page: Image) -> str:
     """Function that generates the query for the document
-
     Args:page
         chunk (Image): page to be processed
-
     Returns:
         str: Query for the document
     """
-
     encoded_image = encode_pil_image(page)
-
     query = [
         {
             "role": "system",
@@ -48,7 +41,6 @@ def generate_query(page: Image) -> str:
             ]
         }
     ]
-
     return query
 
 
@@ -94,5 +86,6 @@ def process_image(img_pth: str):
     response = queryExtractText(page_query)
     print(response.content)
     return response.content
+
 
 process_image("caligrafia 3.jpg")
