@@ -6,6 +6,13 @@ from io import BytesIO
 from agent import gpt_4o as llm
 
 
+# Códigos ANSI para cores
+VERMELHO = "\033[91m"
+VERDE = "\033[92m"
+AZUL = "\033[94m"
+RESET = "\033[0m"
+
+
 def encode_pil_image(pil_image: Image) -> str:
     """Function that encodes a PIL image into base 64 string
     Args:
@@ -85,8 +92,5 @@ async def process_image(img_pth: str):
         return None
     page_query = generate_query(img)
     response = queryExtractText(page_query)
-    print(response.content)
+    print(f"{VERMELHO}[LOG (process_image)]\n{RESET}{AZUL}{response.content}{RESET}")
     return response.content
-
-
-process_image("caligrafia 3.jpg")

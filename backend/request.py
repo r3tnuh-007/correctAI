@@ -18,13 +18,14 @@ response = requests.post(url, files=files)
 
 if response.status_code == 200:
     data = response.json()
-    print(f" 🟢 Imagem salva: {data['data']['filename']}")
-    print(f" ⚠️ Caminho: {data['data']['file_path']}")
-    print(f" ⚠️ Caminho: {data['data']['content_text']}")
+    print(f"🟢 Image saved: {data['data']['filename']}")
+    print(f"⚠️ Path: {data['data']['file_path']}")
+    print(f"🌕 Content:\n{data['data']['content_text']}")
 else:
-    print(f"❌ Erro: {response.text}")
+    print(f"❌ Error: {response.text}")
 
-"""# Listar imagens
+# Listar imagens
 response = requests.get("http://localhost:8000/images")
+print()
+print()
 print(response.json())
-"""
