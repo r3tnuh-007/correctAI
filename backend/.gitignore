@@ -3,3 +3,5 @@ __pycache__
 database.db
 .venv_api
 .venv
+chroma_db
+documentos
