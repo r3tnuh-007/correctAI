@@ -5,21 +5,21 @@ all: $(NAME)
 
 
 $(NAME):
-	@cd backend
 	@python main.py 
 
 
 install:
-	@cd backend
 	@python3 -m venv .venv
 	@source .venv/bin/activate
 	@pip install -r requirements.txt
+	@sleep 1.5s
 	@clear
 	@python main.py
 
 
 clean_venv:
-	rm -fr backend/.venv
+	@rm -fr .venv
+	@deactivate
 
 
 .PHONY: $(NAME) install clean_venv

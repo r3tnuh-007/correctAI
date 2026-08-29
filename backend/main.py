@@ -166,6 +166,7 @@ Answer:"""
         logger.error(f"🚫 Error calling llama-server: {e}")
         return f"Erro: {str(e)}"
 
+
 # --- submitting the images ---
 @app.post("/perguntar", response_model=QueryResponse)
 async def perguntar(request: QueryRequest):

@@ -5,7 +5,7 @@ correctAI will be our application powered by AI for the Hackathon Prometheus Aug
 
 **Nome:** ***correctAI*** 🌕
 
-**Developers:** ***Antero F. Luís(r3tnuh-007), Bruno Sebastião (bsebasti9)*** 🥶
+**Developers:** ***Antero F. Luís(r3tnuh-007), Bruno Sebastião (bsebasti0)*** 🥶
 
 **Architecture Pattern:** ***MVC - Model(Midleware) View Controller ⚠️***
 
