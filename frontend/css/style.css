@@ -1680,3 +1680,45 @@ h3 {
         padding: 0 8px;
     }
 }
+
+
+/* ============================================================
+   ESTADO DE ERRO NA FILA - SEM NOTA
+   ============================================================ */
+
+.estado--erro {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+    animation: piscarErro 1.5s ease-in-out infinite;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@keyframes piscarErro {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Botão de re-tentar */
+.btn--reintentar {
+    background: var(--acento, #f5b942);
+    color: var(--acento-texto, #1a1405) !important;
+}
+
+.btn--reintentar:hover {
+    background: var(--acento-forte, #e09c1f);
+    transform: translateY(-2px);
+}
+
+/* Prova em estado de erro - card com borda vermelha */
+.prova-card.estado-erro {
+    border-color: rgba(248, 113, 113, 0.3);
+    background: rgba(248, 113, 113, 0.05);
+}

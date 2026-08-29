@@ -1,5 +1,6 @@
 /* ============================================================
-   API SERVICE — Conexão completa com o backend
+   API SERVICE — Conexão com o backend
+   SEM FALLBACK LOCAL - Apenas sucesso ou erro
    ============================================================ */
 
 "use strict";
@@ -12,37 +13,45 @@ class ApiService {
         // ==========================================
         // CONFIGURAÇÕES DA API
         // ==========================================
-        this.baseUrl = 'https://sua-api.com/api'; // ALTERE PARA SUA URL REAL
+        this.baseUrl = 'https://sua-api.com/api'; // ALTERE PARA SUA URL
         this.timeout = 300000; // 5 minutos
 
-        // Endpoints da API
+        // Endpoints
         this.endpoints = {
             corrigir: '/corrigir',
             status: '/status',
             download: '/download',
-            health: '/health',
-            feedback: '/feedback'
+            health: '/health'
         };
 
-        // Headers padrão
+        // Headers
         this.headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         };
 
-        // Status da conexão
+        // ==========================================
+        // ESTADO DA CONEXÃO
+        // ==========================================
         this.conectado = false;
         this.ultimoErro = null;
+        this.verificandoConexao = false;
     }
 
     // ==========================================
-    // MÉTODOS PÚBLICOS PRINCIPAIS
+    // VERIFICAÇÃO DE CONEXÃO
     // ==========================================
 
     /**
      * Verifica se a API está online
      */
     async verificarSaude() {
+        if (this.verificandoConexao) {
+            return this.conectado;
+        }
+
+        this.verificandoConexao = true;
+
         try {
             const response = await fetch(`${this.baseUrl}${this.endpoints.health}`, {
                 method: 'GET',
@@ -51,12 +60,19 @@ class ApiService {
             });
 
             this.conectado = response.ok;
+
+            if (!this.conectado) {
+                this.ultimoErro = new Error(`Servidor respondeu com status ${response.status}`);
+            }
+
             return this.conectado;
         } catch (error) {
             this.conectado = false;
             this.ultimoErro = error;
-            console.warn('API offline:', error.message);
+            console.error('❌ Erro ao verificar conexão:', error.message);
             return false;
+        } finally {
+            this.verificandoConexao = false;
         }
     }
 
@@ -86,6 +102,8 @@ class ApiService {
         if (prova.tipo === 'pdf') {
             if (ficheiros && ficheiros.length > 0) {
                 formData.append('prova', ficheiros[0]);
+            } else {
+                throw new Error('Nenhum arquivo PDF anexado');
             }
         } else {
             if (ficheiros && ficheiros.length > 0) {
@@ -93,6 +111,8 @@ class ApiService {
                     formData.append(`prova_${index}`, foto);
                 });
                 formData.append('total_paginas', ficheiros.length);
+            } else {
+                throw new Error('Nenhuma foto anexada');
             }
         }
 
@@ -116,15 +136,46 @@ class ApiService {
     }
 
     /**
-     * Envia a prova para correção com progresso
+     * Envia a prova para correção
+     * @throws {Error} Se houver falha na conexão ou na API
      */
     async enviarParaCorrecao(formData, callbacks = {}) {
         const { onProgress, onComplete, onError } = callbacks;
 
+        // Verifica conexão antes de enviar
+        const online = await this.verificarSaude();
+
+        if (!online) {
+            const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet e tente novamente.');
+            this.ultimoErro = erro;
+            if (onError) onError(erro);
+            throw erro;
+        }
+
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
+            let timeoutId = null;
+            let concluido = false;
 
-            // Progresso do upload
+            // ==========================================
+            // CONFIGURAÇÃO DO TIMEOUT
+            // ==========================================
+            const definirTimeout = () => {
+                timeoutId = setTimeout(() => {
+                    if (!concluido) {
+                        xhr.abort();
+                        const erro = new Error('⏰ Tempo limite excedido. O servidor demorou muito para responder.');
+                        this.ultimoErro = erro;
+                        this.conectado = false;
+                        if (onError) onError(erro);
+                        reject(erro);
+                    }
+                }, this.timeout);
+            };
+
+            // ==========================================
+            // PROGRESSO DO UPLOAD
+            // ==========================================
             if (onProgress) {
                 xhr.upload.addEventListener('progress', (event) => {
                     if (event.lengthComputable) {
@@ -134,7 +185,9 @@ class ApiService {
                 });
             }
 
-            // Progresso do download (processamento)
+            // ==========================================
+            // PROGRESSO DO DOWNLOAD
+            // ==========================================
             xhr.addEventListener('progress', (event) => {
                 if (event.lengthComputable && onProgress) {
                     const percentual = Math.round((event.loaded / event.total) * 100);
@@ -142,54 +195,103 @@ class ApiService {
                 }
             });
 
-            // Resposta completa
+            // ==========================================
+            // RESPOSTA COMPLETA
+            // ==========================================
             xhr.addEventListener('load', () => {
+                concluido = true;
+                clearTimeout(timeoutId);
+
                 if (xhr.status >= 200 && xhr.status < 300) {
                     try {
                         const resposta = JSON.parse(xhr.responseText);
-                        if (onComplete) onComplete(resposta);
                         this.conectado = true;
+                        if (onComplete) onComplete(resposta);
                         resolve(resposta);
                     } catch (e) {
-                        // Fallback se não for JSON
-                        const resposta = {
-                            status: 'sucesso',
-                            raw: xhr.responseText,
-                            nota: this._gerarNotaSimulada(),
-                            comentario: 'Correção processada com sucesso.'
-                        };
-                        if (onComplete) onComplete(resposta);
-                        resolve(resposta);
+                        const erro = new Error('❌ Resposta inválida do servidor.');
+                        this.ultimoErro = erro;
+                        if (onError) onError(erro);
+                        reject(erro);
                     }
                 } else {
-                    const erro = new Error(`Erro ${xhr.status}: ${xhr.statusText}`);
+                    let mensagemErro = `❌ Erro ${xhr.status}: `;
+
+                    try {
+                        const resposta = JSON.parse(xhr.responseText);
+                        mensagemErro += resposta.mensagem || resposta.error || xhr.statusText;
+                    } catch (e) {
+                        mensagemErro += xhr.statusText || 'Erro desconhecido no servidor.';
+                    }
+
+                    const erro = new Error(mensagemErro);
                     this.ultimoErro = erro;
+                    this.conectado = false;
                     if (onError) onError(erro);
                     reject(erro);
                 }
             });
 
-            // Erros
+            // ==========================================
+            // ERROS DE REDE
+            // ==========================================
             xhr.addEventListener('error', () => {
-                const erro = new Error('Erro de conexão com a API');
+                concluido = true;
+                clearTimeout(timeoutId);
+
+                const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet.');
                 this.ultimoErro = erro;
                 this.conectado = false;
                 if (onError) onError(erro);
                 reject(erro);
             });
 
+            // ==========================================
+            // TIMEOUT
+            // ==========================================
             xhr.addEventListener('timeout', () => {
-                const erro = new Error('Tempo limite excedido');
+                concluido = true;
+                clearTimeout(timeoutId);
+
+                const erro = new Error('⏰ Tempo limite excedido. O servidor demorou muito para responder.');
+                this.ultimoErro = erro;
+                this.conectado = false;
+                if (onError) onError(erro);
+                reject(erro);
+            });
+
+            // ==========================================
+            // ABORT
+            // ==========================================
+            xhr.addEventListener('abort', () => {
+                concluido = true;
+                clearTimeout(timeoutId);
+
+                const erro = new Error('⛔ Requisição cancelada.');
                 this.ultimoErro = erro;
                 if (onError) onError(erro);
                 reject(erro);
             });
 
-            // Envia a requisição
-            const url = `${this.baseUrl}${this.endpoints.corrigir}`;
-            xhr.open('POST', url, true);
-            xhr.timeout = this.timeout;
-            xhr.send(formData);
+            // ==========================================
+            // ENVIA A REQUISIÇÃO
+            // ==========================================
+            try {
+                const url = `${this.baseUrl}${this.endpoints.corrigir}`;
+                xhr.open('POST', url, true);
+                xhr.timeout = this.timeout;
+
+                definirTimeout();
+                xhr.send(formData);
+            } catch (error) {
+                concluido = true;
+                clearTimeout(timeoutId);
+                const erro = new Error(`❌ Erro ao enviar: ${error.message}`);
+                this.ultimoErro = erro;
+                this.conectado = false;
+                if (onError) onError(erro);
+                reject(erro);
+            }
         });
     }
 
@@ -198,6 +300,11 @@ class ApiService {
      */
     async verificarStatus(id) {
         try {
+            const online = await this.verificarSaude();
+            if (!online) {
+                throw new Error('🚫 Falha na conexão com o servidor.');
+            }
+
             const url = `${this.baseUrl}${this.endpoints.status}/${id}`;
             const response = await fetch(url, {
                 headers: this.headers,
@@ -205,7 +312,12 @@ class ApiService {
             });
 
             if (!response.ok) {
-                throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                let mensagem = `Erro ${response.status}`;
+                try {
+                    const dados = await response.json();
+                    mensagem = dados.mensagem || dados.error || mensagem;
+                } catch (e) {}
+                throw new Error(`❌ ${mensagem}`);
             }
 
             return await response.json();
@@ -216,68 +328,27 @@ class ApiService {
     }
 
     /**
-     * Monitora uma correção em tempo real
-     */
-    async monitorarCorrecao(id, callbacks = {}) {
-        const { onStatus, onComplete, onError, intervalo = 3000 } = callbacks;
-        const maxTentativas = 60; // 3 minutos
-
-        let tentativas = 0;
-        let conclusaoResolvida = false;
-
-        return new Promise((resolve, reject) => {
-            const interval = setInterval(async () => {
-                tentativas++;
-
-                try {
-                    const status = await this.verificarStatus(id);
-
-                    if (onStatus) onStatus(status, tentativas);
-
-                    if (status.estado === 'concluido') {
-                        clearInterval(interval);
-                        conclusaoResolvida = true;
-                        if (onComplete) onComplete(status);
-                        resolve(status);
-                    } else if (status.estado === 'erro') {
-                        clearInterval(interval);
-                        conclusaoResolvida = true;
-                        const erro = new Error(status.mensagem || 'Erro na correção');
-                        if (onError) onError(erro);
-                        reject(erro);
-                    }
-
-                    if (tentativas >= maxTentativas && !conclusaoResolvida) {
-                        clearInterval(interval);
-                        const erro = new Error('Tempo limite de monitoramento excedido');
-                        if (onError) onError(erro);
-                        reject(erro);
-                    }
-
-                } catch (error) {
-                    console.warn('Erro ao verificar status:', error);
-                    if (tentativas >= maxTentativas) {
-                        clearInterval(interval);
-                        if (onError) onError(error);
-                        reject(error);
-                    }
-                }
-            }, intervalo);
-        });
-    }
-
-    /**
      * Baixa relatório da correção
      */
     async baixarRelatorio(id, formato = 'pdf') {
         try {
+            const online = await this.verificarSaude();
+            if (!online) {
+                throw new Error('🚫 Falha na conexão com o servidor.');
+            }
+
             const url = `${this.baseUrl}${this.endpoints.download}/${id}?formato=${formato}`;
             const response = await fetch(url, {
                 signal: AbortSignal.timeout(30000)
             });
 
             if (!response.ok) {
-                throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                let mensagem = `Erro ${response.status}`;
+                try {
+                    const dados = await response.json();
+                    mensagem = dados.mensagem || dados.error || mensagem;
+                } catch (e) {}
+                throw new Error(`❌ ${mensagem}`);
             }
 
             const blob = await response.blob();
@@ -296,106 +367,26 @@ class ApiService {
         }
     }
 
-    /**
-     * Envia feedback sobre a correção
-     */
-    async enviarFeedback(id, feedback) {
-        try {
-            const url = `${this.baseUrl}${this.endpoints.feedback}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: this.headers,
-                body: JSON.stringify({
-                    id,
-                    feedback,
-                    timestamp: new Date().toISOString()
-                }),
-                signal: AbortSignal.timeout(10000)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro ${response.status}: ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            this.ultimoErro = error;
-            throw error;
-        }
-    }
-
     // ==========================================
-    // MÉTODOS DE UTILIDADE
+    // MÉTODOS DE CONFIGURAÇÃO
     // ==========================================
 
-    /**
-     * Gera uma nota simulada (fallback)
-     */
-    _gerarNotaSimulada() {
-        const base = 0.6 + Math.random() * 0.35;
-        return Math.round(base * 20 * 10) / 10;
-    }
-
-    /**
-     * Formata os dados da prova para exibição
-     */
-    formatarResposta(resposta) {
-        return {
-            nota: resposta.nota || 0,
-            notaMaxima: resposta.notaMaxima || 20,
-            detalhes: resposta.detalhes || null,
-            comentario: resposta.comentario || 'Correção concluída.',
-            status: resposta.status || 'sucesso',
-            timestamp: resposta.timestamp || new Date().toISOString()
-        };
-    }
-
-    /**
-     * Valida os dados antes de enviar
-     */
-    validarDados(prova, ficheiros) {
-        const erros = [];
-
-        if (!prova.nome || prova.nome.length < 2) {
-            erros.push('Nome do estudante inválido');
-        }
-
-        if (!prova.numero || prova.numero.length < 1) {
-            erros.push('Número do estudante inválido');
-        }
-
-        if (!ficheiros || ficheiros.length === 0) {
-            erros.push('Nenhum ficheiro anexado');
-        }
-
-        if (prova.tipo === 'pdf' && ficheiros && ficheiros.length > 1) {
-            erros.push('Apenas um PDF é permitido');
-        }
-
-        if (prova.tipo === 'foto' && ficheiros && ficheiros.length > 20) {
-            erros.push('Máximo de 20 fotos por prova');
-        }
-
-        return {
-            valido: erros.length === 0,
-            erros
-        };
-    }
-
-    /**
-     * Configura a URL da API
-     */
     setBaseUrl(url) {
         this.baseUrl = url;
         console.log('✅ URL da API atualizada:', url);
     }
 
-    /**
-     * Configura timeout
-     */
     setTimeout(ms) {
         this.timeout = ms;
         console.log('⏱️ Timeout configurado:', ms, 'ms');
+    }
+
+    getUltimoErro() {
+        return this.ultimoErro;
+    }
+
+    isOnline() {
+        return this.conectado;
     }
 }
 
@@ -413,140 +404,48 @@ function getApiService() {
 }
 
 // ==========================================
-// FUNÇÕES AUXILIARES PARA INTEGRAÇÃO
+// FUNÇÃO PARA ENVIAR PROVA - SEM FALLBACK
 // ==========================================
 
-/**
- * Função completa para enviar uma prova para correção
- * Esta é a função principal que você deve chamar
- */
 async function enviarProvaParaCorrecao(prova, ficheiros, config, chave = null) {
     const api = getApiService();
-
-    // Valida os dados
-    const validacao = api.validarDados(prova, ficheiros);
-    if (!validacao.valido) {
-        throw new Error('Dados inválidos: ' + validacao.erros.join(', '));
-    }
 
     // Prepara os dados
     const formData = api.prepararDadosParaAPI(prova, ficheiros, config, chave);
 
-    // Configura os callbacks
+    // Configura callbacks
     const callbacks = {
         onProgress: (percentual, tipo) => {
             const mensagem = tipo === 'upload'
                 ? `📤 Enviando... ${percentual}%`
                 : `⚡ Processando... ${percentual}%`;
-            mostrarToast(mensagem);
+            if (typeof mostrarToast === 'function') {
+                mostrarToast(mensagem);
+            }
         },
         onComplete: (resposta) => {
             console.log('✅ Correção concluída:', resposta);
             return resposta;
         },
         onError: (erro) => {
-            console.error('❌ Erro na correção:', erro);
+            console.error('❌ Erro:', erro.message);
+            if (typeof mostrarToast === 'function') {
+                mostrarToast(`❌ ${erro.message}`);
+            }
             throw erro;
         }
     };
 
-    // Envia para API
-    try {
-        const resultado = await api.enviarParaCorrecao(formData, callbacks);
-
-        // Se a API retornou um ID para monitoramento
-        if (resultado.id && resultado.status === 'processando') {
-            mostrarToast(`⏳ Correção em andamento... ID: ${resultado.id}`);
-
-            // Monitora o progresso
-            const statusFinal = await api.monitorarCorrecao(resultado.id, {
-                onStatus: (status, tentativa) => {
-                    console.log(`Status (${tentativa}):`, status);
-                },
-                onComplete: (statusFinal) => {
-                    console.log('✅ Correção finalizada:', statusFinal);
-                    return statusFinal;
-                },
-                onError: (erro) => {
-                    console.error('❌ Erro no monitoramento:', erro);
-                    throw erro;
-                }
-            });
-
-            return api.formatarResposta(statusFinal);
-        }
-
-        return api.formatarResposta(resultado);
-
-    } catch (error) {
-        console.error('❌ Erro ao enviar prova:', error);
-
-        // Fallback: simula uma correção local
-        console.warn('⚠️ Usando fallback local');
-        return {
-            nota: api._gerarNotaSimulada(),
-            notaMaxima: config.notaMax || 20,
-            comentario: 'Simulação local (API indisponível)',
-            status: 'fallback',
-            timestamp: new Date().toISOString(),
-            erro: error.message
-        };
-    }
-}
-
-/**
- * Função para baixar relatório
- */
-async function baixarRelatorioCorrecao(id, formato = 'pdf') {
-    const api = getApiService();
-    try {
-        await api.baixarRelatorio(id, formato);
-        mostrarToast(`✅ Relatório ${formato.toUpperCase()} baixado com sucesso!`);
-    } catch (error) {
-        mostrarToast(`❌ Erro ao baixar relatório: ${error.message}`);
-        throw error;
-    }
-}
-
-/**
- * Função para verificar saúde da API
- */
-async function verificarApi() {
-    const api = getApiService();
-    const saudavel = await api.verificarSaude();
-    if (saudavel) {
-        console.log('✅ API está online');
-    } else {
-        console.warn('⚠️ API está offline');
-    }
-    return saudavel;
+    // Envia para API - SEM FALLBACK
+    return await api.enviarParaCorrecao(formData, callbacks);
 }
 
 // ==========================================
-// EXPORTA PARA USO GLOBAL
+// EXPORTAÇÃO
 // ==========================================
 
-// Exporta a instância e as funções
 window.ApiService = ApiService;
 window.getApiService = getApiService;
 window.enviarProvaParaCorrecao = enviarProvaParaCorrecao;
-window.baixarRelatorioCorrecao = baixarRelatorioCorrecao;
-window.verificarApi = verificarApi;
 
-console.log('🚀 API Service inicializado!');
-console.log('📡 URL da API:', getApiService().baseUrl);
-
-// ==========================================
-// INICIALIZAÇÃO AUTOMÁTICA
-// ==========================================
-
-// Verifica a API ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-    verificarApi().then(online => {
-        if (online) {
-            console.log('✅ Conectado à API');
-        } else {
-            console.warn('⚠️ Modo offline - usando simulação local');
-        }
-    });
-});
+console.log('🚀 API Service inicializado (SEM FALLBACK LOCAL)');

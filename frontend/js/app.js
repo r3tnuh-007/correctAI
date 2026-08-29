@@ -807,13 +807,13 @@ function inicializar() {
         mostrarToast(`${emoji} Correção concluída: ${prova.nome} obteve ${prova.nota}/${prova.notaMaxima}`);
       } else {
         // Modo offline - usa simulação local
-        console.warn('⚠️ API Service não disponível, usando simulação local');
-        simulacaoLocal(prova);
+        console.warn('⚠️ API Service não disponível, sem resposta.');
+        // simulacaoLocal(prova);
       }
     } catch (error) {
       console.error('❌ Erro na correção:', error);
       // Fallback para simulação local
-      simulacaoLocal(prova);
+    //   simulacaoLocal(prova);
     }
   }
 
