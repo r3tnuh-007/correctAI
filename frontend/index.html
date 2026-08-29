@@ -9,6 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="./css/animacao-ia.css" />
+<script src="./js/animacao-ia.js"></script>
+
 </head>
 <body>
 
@@ -39,6 +42,9 @@
 <main class="container">
 	<section class="hero">
 	<span class="hero__tag">Correção automática com IA</span>
+	<div id="animacaoContainer">
+		<!-- Aqui será injetada a animação -->
+    </div>
 	<h1>Corrige provas em <em>segundos</em>,<br />não em horas.</h1>
 	<p>
 		Carrega a prova do estudante em <strong>PDF</strong> ou em <strong>fotos</strong>
@@ -320,6 +326,12 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="js/app.js"></script>
+    <script>
+        // Inicializa a animação no container
+        const container = document.getElementById('animacaoContainer');
+        const animacao = new AnimacaoIA(container);
+        animacao.iniciar();
+    </script>
 
 </body>
 </html>
