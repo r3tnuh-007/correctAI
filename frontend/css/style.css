@@ -303,7 +303,7 @@ h3 {
   gap: 0.6rem;
 }
 
-.passo span {
+.passo > span:first-child {
   background: var(--acento);
   color: var(--acento-texto);
 
@@ -318,6 +318,8 @@ h3 {
   place-items: center;
 
   font-size: 0.8rem;
+
+  flex-shrink: 0;
 }
 
 .passo__seta {
@@ -1626,6 +1628,362 @@ h3 {
 
 
 /* ============================================================
+   BOTÃO DE IDIOMA
+   ============================================================ */
+
+#btnIdioma {
+  width: auto;
+
+  padding: 0 0.7rem;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  gap: 0.25rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ============================================================
+   MODO: CORREÇÃO SIMPLES vs CORREÇÃO EM LOTE
+   ============================================================ */
+
+.modo-corretor {
+  display: inline-flex;
+
+  gap: 0.35rem;
+
+  background: var(--superficie);
+
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+
+  padding: 0.3rem;
+
+  margin: 0.5rem 0 1.5rem;
+}
+
+.modo-corretor__opcao {
+  border: none;
+  background: transparent;
+
+  color: var(--texto-suave);
+
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  padding: 0.5rem 1.1rem;
+
+  border-radius: 999px;
+
+  cursor: pointer;
+
+  transition: var(--transicao);
+}
+
+.modo-corretor__opcao:hover {
+  color: var(--texto);
+}
+
+.modo-corretor__opcao.ativo {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+
+
+/* ============================================================
+   RODAPÉ
+   ============================================================ */
+
+.rodape {
+  border-top: 1px solid var(--borda);
+
+  margin-top: 3rem;
+
+  padding: 2.5rem 1.5rem 1.5rem;
+
+  background: var(--fundo-2);
+}
+
+.rodape__conteudo {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+
+  gap: 2rem;
+}
+
+.rodape__logo {
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+
+  font-size: 1.05rem;
+
+  color: var(--texto);
+
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  margin-bottom: 0.4rem;
+}
+
+.rodape__marca p {
+  color: var(--texto-suave);
+
+  font-size: 0.85rem;
+
+  max-width: 32ch;
+}
+
+.rodape__links {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.55rem;
+}
+
+.rodape__links a {
+  color: var(--texto-suave);
+
+  font-size: 0.85rem;
+
+  text-decoration: none;
+
+  transition: var(--transicao);
+}
+
+.rodape__links a:hover {
+  color: var(--acento);
+}
+
+.rodape__meta {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.55rem;
+
+  font-size: 0.85rem;
+
+  color: var(--texto-suave);
+
+  align-items: flex-start;
+}
+
+@media (min-width: 700px) {
+  .rodape__meta {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+.rodape__aviso {
+  max-width: 1100px;
+
+  margin: 1.75rem auto 0;
+
+  padding-top: 1.25rem;
+
+  border-top: 1px solid var(--borda);
+
+  font-size: 0.75rem;
+
+  color: var(--texto-suave);
+
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .rodape__conteudo {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+
+/* ============================================================
+   MODAL LARGO (lote / relatório)
+   ============================================================ */
+
+.modal--largo {
+  max-width: 760px;
+}
+
+
+/* ============================================================
+   CORREÇÃO EM LOTE
+   ============================================================ */
+
+.lote-lista {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1.25rem;
+
+  margin-top: 1rem;
+
+  max-height: 55vh;
+
+  overflow-y: auto;
+
+  padding-right: 0.25rem;
+}
+
+.lote-linha {
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+
+  padding: 1.1rem;
+
+  background: var(--superficie);
+
+  position: relative;
+}
+
+.lote-linha__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 0.85rem;
+}
+
+.lote-linha__titulo {
+  font-weight: 700;
+  font-size: 0.95rem;
+
+  color: var(--texto);
+}
+
+.lote-linha__remover {
+  background: transparent;
+  border: 1px solid var(--borda);
+
+  color: var(--texto-suave);
+
+  font-size: 0.78rem;
+
+  padding: 0.3rem 0.65rem;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition: var(--transicao);
+}
+
+.lote-linha__remover:hover {
+  color: #e05252;
+  border-color: #e05252;
+}
+
+.lote-linha__campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 0.75rem;
+
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .lote-linha__campos {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lote-acoes {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.75rem;
+
+  margin-top: 1.25rem;
+}
+
+
+/* ============================================================
+   RELATÓRIO DO LOTE
+   ============================================================ */
+
+.relatorio-tabela-wrap {
+  overflow-x: auto;
+
+  margin-top: 0.5rem;
+
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+}
+
+.relatorio-tabela {
+  width: 100%;
+  border-collapse: collapse;
+
+  font-size: 0.88rem;
+}
+
+.relatorio-tabela th,
+.relatorio-tabela td {
+  padding: 0.7rem 0.9rem;
+
+  text-align: left;
+
+  border-bottom: 1px solid var(--borda);
+
+  white-space: nowrap;
+}
+
+.relatorio-tabela th {
+  background: var(--superficie);
+
+  color: var(--texto-suave);
+
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.relatorio-tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.relatorio-resumo {
+  margin-top: 1.25rem;
+
+  padding: 1rem 1.2rem;
+
+  background: var(--superficie);
+
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+
+  font-size: 0.95rem;
+
+  font-weight: 700;
+
+  color: var(--texto);
+}
+
+.relatorio-resumo small {
+  display: block;
+
+  font-weight: 500;
+  font-size: 0.78rem;
+
+  color: var(--texto-suave);
+
+  margin-top: 0.2rem;
+}
+
+
+/* ============================================================
    MOBILE
    ============================================================ */
 
@@ -1639,86 +1997,4 @@ h3 {
     min-height: 90px;
   }
 
-}
-
-
-/* ============================================================
-   CENTRALIZAÇÃO DA ANIMAÇÃO IA
-   ============================================================ */
-
-/* Container principal da animação - centralização completa */
-#animacaoContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    max-width: 600px;
-    margin: 30px auto;
-    padding: 0 16px;
-    min-height: 320px;
-}
-
-/* Alternativa: Se quiser dentro do hero */
-.hero #animacaoContainer {
-    margin: 30px auto 20px;
-    justify-content: center;
-}
-
-/* Para mobile */
-@media (max-width: 768px) {
-    #animacaoContainer {
-        min-height: 280px;
-        margin: 20px auto;
-        padding: 0 12px;
-    }
-}
-
-@media (max-width: 480px) {
-    #animacaoContainer {
-        min-height: 240px;
-        margin: 15px auto;
-        padding: 0 8px;
-    }
-}
-
-
-/* ============================================================
-   ESTADO DE ERRO NA FILA - SEM NOTA
-   ============================================================ */
-
-.estado--erro {
-    background: rgba(248, 113, 113, 0.15);
-    color: #f87171;
-    animation: piscarErro 1.5s ease-in-out infinite;
-    border: 1px solid rgba(248, 113, 113, 0.3);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-@keyframes piscarErro {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* Botão de re-tentar */
-.btn--reintentar {
-    background: var(--acento, #f5b942);
-    color: var(--acento-texto, #1a1405) !important;
-}
-
-.btn--reintentar:hover {
-    background: var(--acento-forte, #e09c1f);
-    transform: translateY(-2px);
-}
-
-/* Prova em estado de erro - card com borda vermelha */
-.prova-card.estado-erro {
-    border-color: rgba(248, 113, 113, 0.3);
-    background: rgba(248, 113, 113, 0.05);
 }

@@ -8,15 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-<!-- CSS primeiro -->
 <link rel="stylesheet" href="css/style.css" />
-<link rel="stylesheet" href="./css/animacao-ia.css" />
-
-<!-- JS na ordem correta -->
-<script src="./js/api-service.js"></script>  <!-- PRIMEIRO: API Service -->
-<script src="js/app.js"></script>           <!-- SEGUNDO: App principal -->
-<script src="./js/animacao-ia.js"></script> <!-- TERCEIRO: Animação -->
-
 </head>
 <body>
 
@@ -27,7 +19,7 @@
 	<span>Corretor<strong>IA</strong></span>
 	</div>
 	<div class="topo__acoes">
-	<button class="btn btn--icone" id="btnChat" aria-label="Abrir chat com a IA" title="Chat com a IA">💬</button>
+	<button class="btn btn--icone" id="btnChat" data-i18n-aria="headerChatAria" data-i18n-title="headerChatTitle" aria-label="Abrir chat com a IA" title="Chat com a IA">💬</button>
 	<button
 		class="btn btn--icone"
 		id="btnTema"
@@ -37,8 +29,10 @@
 		☀️
 	</button>
 
-	<button class="btn btn--icone" id="btnConfig" aria-label="Abrir configurações" title="Configurações">⚙️</button>
-	<button class="btn btn--primario" id="btnAbrirModalTopo">+ Nova prova</button>
+	<button class="btn btn--icone" id="btnIdioma" aria-label="Mudar idioma" title="Switch to English">🌐 EN</button>
+
+	<button class="btn btn--icone" id="btnConfig" data-i18n-aria="headerConfigAria" data-i18n-title="headerConfigTitle" aria-label="Abrir configurações" title="Configurações">⚙️</button>
+	<button class="btn btn--primario" id="btnAbrirModalTopo" data-i18n="headerNovaProva">+ Nova prova</button>
 	</div>
 </header>
 
@@ -46,72 +40,102 @@
 <!-- ===== HERO ===== -->
 <main class="container">
 	<section class="hero">
-	<span class="hero__tag">Correção automática com IA</span>
-	<div id="animacaoContainer">
-		<!-- Aqui será injetada a animação -->
-    </div>
-	<h1>Corrige provas em <em>segundos</em>,<br />não em horas.</h1>
-	<p>
+	<span class="hero__tag" data-i18n="heroTag">Correção automática com IA</span>
+	<h1 data-i18n="heroTituloHtml" data-i18n-html="true">Corrige provas em <em>segundos</em>,<br />não em horas.</h1>
+	<p data-i18n="heroParagrafoHtml" data-i18n-html="true">
 		Carrega a prova do estudante em <strong>PDF</strong> ou em <strong>fotos</strong>
 		(uma por página) e a nossa IA analisa, corrige e atribui a nota automaticamente.
 	</p>
+
+	<!-- ===== MODO: CORREÇÃO SIMPLES vs LOTE ===== -->
+	<div class="modo-corretor" role="radiogroup" aria-label="Modo de correção">
+		<button type="button" class="modo-corretor__opcao ativo" id="btnModoSimples" data-i18n="modoSimples">🧾 Correção simples</button>
+		<button type="button" class="modo-corretor__opcao" id="btnModoLote" data-i18n="modoLote">📚 Correção em lote</button>
+	</div>
+
 	<button class="btn btn--grande" id="btnAbrirModalHero">
-		<span class="btn__icone">⇪</span> Carregar prova para correção
+		<span class="btn__icone">⇪</span> <span id="textoBotaoHero" data-i18n="heroBotaoSimples">Carregar prova para correção</span>
 	</button>
 
 	<div class="hero__passos">
-		<div class="passo"><span>1</span> Carrega a prova</div>
+		<div class="passo"><span>1</span> <span data-i18n="passo1">Carrega a prova</span></div>
 		<div class="passo__seta">→</div>
-		<div class="passo"><span>2</span> A IA corrige</div>
+		<div class="passo"><span>2</span> <span data-i18n="passo2">A IA corrige</span></div>
 		<div class="passo__seta">→</div>
-		<div class="passo"><span>3</span> Recebe a nota</div>
+		<div class="passo"><span>3</span> <span data-i18n="passo3">Recebe a nota</span></div>
 	</div>
 	</section>
 
 	<!-- ===== FILA DE PROVAS ===== -->
 	<section class="fila" id="secFila" hidden>
 	<div class="fila__topo">
-		<h2>Provas em análise</h2>
-		<button class="btn btn--pequeno" id="btnExportarTudo">⬇ Exportar tudo (CSV)</button>
+		<h2 data-i18n="filaTitulo">Provas em análise</h2>
+		<button class="btn btn--pequeno" id="btnExportarTudo" data-i18n="filaExportar">⬇ Exportar tudo (CSV)</button>
 	</div>
 	<div class="fila__lista" id="listaProvas"></div>
 	</section>
 
 </main>
 
-<!-- ===== MODAL (popup) DE CARREGAMENTO ===== -->
+<!-- ===== RODAPÉ ===== -->
+<footer class="rodape">
+	<div class="rodape__conteudo">
+		<div class="rodape__marca">
+			<div class="rodape__logo"><span class="topo__icone">✦</span> Corretor<strong>IA</strong></div>
+			<p data-i18n="rodapeSlogan">Correção de provas com Inteligência Artificial.</p>
+		</div>
+
+		<nav class="rodape__links" aria-label="Links do rodapé">
+			<a href="#" data-i18n="rodapeSobre">Sobre</a>
+			<a href="#" data-i18n="rodapeTermos">Termos de Uso</a>
+			<a href="#" data-i18n="rodapePrivacidade">Política de Privacidade</a>
+			<a href="#" data-i18n="rodapeContacto">Contacto / Suporte</a>
+		</nav>
+
+		<div class="rodape__meta">
+			<span>© <span id="rodapeAno">2026</span> CorretorIA</span>
+			<span data-i18n="rodapeVersao">Versão 1.0.0</span>
+		</div>
+	</div>
+
+	<p class="rodape__aviso" data-i18n="rodapeAviso">
+		As notas geradas por IA são sugestões e devem ser revistas pelo professor.
+	</p>
+</footer>
+
+<!-- ===== MODAL (popup) DE CARREGAMENTO — CORREÇÃO SIMPLES ===== -->
 <div class="modal-overlay" id="modalOverlay" hidden>
 	<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
 	<button class="modal__fechar" id="btnFecharModal" aria-label="Fechar">✕</button>
 
-	<h2 id="modalTitulo">Carregar prova</h2>
-	<p class="modal__sub">Preenche os dados do estudante e anexa a prova.</p>
+	<h2 id="modalTitulo" data-i18n="modalTitulo">Carregar prova</h2>
+	<p class="modal__sub" data-i18n="modalSub">Preenche os dados do estudante e anexa a prova.</p>
 
 	<form id="formProva" novalidate>
 		<!-- Dados do estudante -->
 		<div class="campo">
-		<label for="inputNome">Nome do estudante</label>
-		<input type="text" id="inputNome" placeholder="Ex.: Bruno Sebastião" maxlength="100" required />
+		<label for="inputNome" data-i18n="labelNome">Nome do estudante</label>
+		<input type="text" id="inputNome" placeholder="Ex.: Bruno Sebastião" data-i18n-placeholder="placeholderNome" maxlength="100" required />
 		<small class="campo__erro" data-erro="nome"></small>
 		</div>
 
 		<div class="campo">
-		<label for="inputNumero">Número de estudante</label>
-		<input type="text" id="inputNumero" placeholder="Ex.: 2026-0042" maxlength="20" required />
+		<label for="inputNumero" data-i18n="labelNumero">Número de estudante</label>
+		<input type="text" id="inputNumero" placeholder="Ex.: 2026-0042" data-i18n-placeholder="placeholderNumero" maxlength="20" required />
 		<small class="campo__erro" data-erro="numero"></small>
 		</div>
 
 		<!-- Escolha do tipo de ficheiro -->
 		<div class="campo">
-		<span class="campo__rotulo">Formato da prova</span>
+		<span class="campo__rotulo" data-i18n="labelFormato">Formato da prova</span>
 		<div class="tipo-toggle" role="radiogroup">
 			<label class="tipo-toggle__opcao">
 			<input type="radio" name="tipoFicheiro" value="pdf" checked />
-			<span>📄 PDF</span>
+			<span data-i18n="optPdf">📄 PDF</span>
 			</label>
 			<label class="tipo-toggle__opcao">
 			<input type="radio" name="tipoFicheiro" value="foto" />
-			<span>📷 Fotos</span>
+			<span data-i18n="optFoto">📷 Fotos</span>
 			</label>
 		</div>
 		</div>
@@ -139,11 +163,11 @@
 
         <span class="dropzone__icone">⇪</span>
 
-        <p id="dropzoneTextoPdf">
+        <p id="dropzoneTextoPdf" data-i18n="dzPdfTexto" data-i18n-html="true">
             Arrasta o PDF aqui ou <u>clica para escolher</u>
         </p>
 
-        <small id="dropzoneAjudaPdf">
+        <small id="dropzoneAjudaPdf" data-i18n="dzPdfAjuda">
             1 ficheiro PDF
         </small>
 
@@ -161,10 +185,10 @@
                 <span class="dropzone__icone">⇪</span>
 
                 <p>
-                    <strong>Carregar fotos</strong>
+                    <strong data-i18n="dzFotosCarregar">Carregar fotos</strong>
                 </p>
 
-                <small>
+                <small data-i18n="dzFotosGaleria">
                     Escolher da galeria
                 </small>
 
@@ -177,10 +201,10 @@
                 <span class="dropzone__icone">📷</span>
 
                 <p>
-                    <strong>Tirar foto</strong>
+                    <strong data-i18n="dzFotosTirar">Tirar foto</strong>
                 </p>
 
-                <small>
+                <small data-i18n="dzFotosCamera">
                     Abrir câmera
                 </small>
 
@@ -188,7 +212,7 @@
 
         </div>
 
-        <small class="dropzone__ajuda" id="dropzoneAjudaFotos">
+        <small class="dropzone__ajuda" id="dropzoneAjudaFotos" data-i18n="dzFotosAjuda">
             Várias fotos — uma por página da prova
         </small>
 
@@ -201,83 +225,130 @@
 		<!-- Pré-visualização das fotos -->
 		<div class="preview-fotos" id="previewFotos"></div>
 
-		<button type="submit" class="btn btn--primario btn--largo" id="btnSubmeter">
+		<button type="submit" class="btn btn--primario btn--largo" id="btnSubmeter" data-i18n="btnEnviar">
 		Enviar para correção
 		</button>
 	</form>
 	</div>
 </div>
 
+<!-- ===== MODAL DE CORREÇÃO EM LOTE ===== -->
+<div class="modal-overlay" id="modalLoteOverlay" hidden>
+	<div class="modal modal--largo" role="dialog" aria-modal="true" aria-labelledby="modalLoteTitulo">
+	<button class="modal__fechar" id="btnFecharModalLote" aria-label="Fechar">✕</button>
+
+	<h2 id="modalLoteTitulo" data-i18n="loteTitulo">Correção em lote</h2>
+	<p class="modal__sub" data-i18n="loteSub">Adiciona as provas de vários estudantes. A IA corrige todas de uma vez e gera um relatório com a média percentual.</p>
+
+	<div class="lote-lista" id="loteLista"></div>
+
+	<small class="campo__erro" data-erro="lote"></small>
+
+	<div class="lote-acoes">
+		<button type="button" class="btn btn--pequeno" id="btnAdicionarAluno" data-i18n="loteAdicionar">+ Adicionar estudante</button>
+		<button type="button" class="btn btn--primario btn--largo" id="btnEnviarLote" data-i18n="loteEnviar">Enviar lote para correção</button>
+	</div>
+	</div>
+</div>
+
+<!-- ===== MODAL: RELATÓRIO DO LOTE ===== -->
+<div class="modal-overlay" id="modalRelatorioOverlay" hidden>
+	<div class="modal modal--largo" role="dialog" aria-modal="true" aria-labelledby="modalRelatorioTitulo">
+	<button class="modal__fechar" id="btnFecharRelatorio" aria-label="Fechar">✕</button>
+
+	<h2 id="modalRelatorioTitulo" data-i18n="relatorioTitulo">Relatório do lote</h2>
+	<p class="modal__sub" id="relatorioSub"></p>
+
+	<div class="relatorio-tabela-wrap">
+		<table class="relatorio-tabela" id="relatorioTabela">
+		<thead>
+			<tr>
+			<th data-i18n="relColNome">Nome</th>
+			<th data-i18n="relColNumero">Número</th>
+			<th data-i18n="relColNota">Nota</th>
+			<th data-i18n="relColPercentagem">Percentagem</th>
+			</tr>
+		</thead>
+		<tbody id="relatorioCorpo"></tbody>
+		</table>
+	</div>
+
+	<div class="relatorio-resumo" id="relatorioResumo"></div>
+
+	<button type="button" class="btn btn--primario btn--largo" id="btnExportarLote" data-i18n="relatorioExportar">⬇ Exportar relatório (CSV)</button>
+	</div>
+</div>
+
 <!-- ===== PAINEL LATERAL ESQUERDO: CHAT COM A IA ===== -->
 <aside class="chat" id="painelChat" aria-label="Chat com a IA">
 	<div class="chat__topo">
-	<h3>💬 Assistente IA</h3>
-	<button class="chat__fechar" id="btnFecharChat" aria-label="Ocultar chat">✕</button>
+	<h3 data-i18n="chatTitulo">💬 Assistente IA</h3>
+	<button class="chat__fechar" id="btnFecharChat" data-i18n-aria="chatFecharAria" aria-label="Ocultar chat">✕</button>
 	</div>
 	<div class="chat__mensagens" id="chatMensagens">
-	<div class="msg msg--ia">Olá! Posso ajudar-te a definir critérios, explicar notas ou rever correções. O que precisas?</div>
+	<div class="msg msg--ia" id="chatMsgInicial" data-i18n="chatMsgInicial">Olá! Posso ajudar-te a definir critérios, explicar notas ou rever correções. O que precisas?</div>
 	</div>
 	<form class="chat__form" id="chatForm">
-	<input type="text" id="chatInput" placeholder="Escreve a tua mensagem…" autocomplete="off" />
+	<input type="text" id="chatInput" placeholder="Escreve a tua mensagem…" data-i18n-placeholder="chatPlaceholder" autocomplete="off" />
 	<button type="submit" class="btn btn--primario" aria-label="Enviar">➤</button>
 	</form>
 </aside>
-<button class="chat__abrir" id="btnAbrirChat" aria-label="Mostrar chat">💬</button>
+<button class="chat__abrir" id="btnAbrirChat" data-i18n-aria="chatAbrirAria" aria-label="Mostrar chat">💬</button>
 
 <!-- ===== PAINEL LATERAL DIREITO: CONFIGURAÇÕES ===== -->
 <aside class="config" id="painelConfig" aria-label="Configurações de avaliação">
 	<div class="config__topo">
-	<h3>⚙️ Configurações</h3>
+	<h3 data-i18n="configTitulo">⚙️ Configurações</h3>
 	<button class="config__fechar" id="btnFecharConfig" aria-label="Fechar configurações">✕</button>
 	</div>
 
 	<div class="config__grupo">
-	<label for="selRigor">Nível de rigorosidade</label>
+	<label for="selRigor" data-i18n="rigorLabel">Nível de rigorosidade</label>
 	<select id="selRigor">
-		<option value="flexivel">Flexível — valoriza o raciocínio</option>
-		<option value="equilibrado" selected>Equilibrado — padrão</option>
-		<option value="rigoroso">Rigoroso — exige precisão</option>
-		<option value="muito-rigoroso">Muito rigoroso — sem margem</option>
+		<option value="flexivel" data-i18n="rigorFlexivel">Flexível — valoriza o raciocínio</option>
+		<option value="equilibrado" selected data-i18n="rigorEquilibrado">Equilibrado — padrão</option>
+		<option value="rigoroso" data-i18n="rigorRigoroso">Rigoroso — exige precisão</option>
+		<option value="muito-rigoroso" data-i18n="rigorMuitoRigoroso">Muito rigoroso — sem margem</option>
 	</select>
 	</div>
 
 	<div class="config__grupo">
-	<label for="rangeTolerancia">Tolerância a erros ortográficos: <strong id="valTolerancia">30%</strong></label>
+	<label for="rangeTolerancia"><span data-i18n="toleranciaLabel">Tolerância a erros ortográficos:</span> <strong id="valTolerancia">30%</strong></label>
 	<input type="range" id="rangeTolerancia" min="0" max="100" step="5" value="30" />
 	</div>
 
 	<div class="config__grupo">
-	<label for="inputNotaMax">Nota máxima</label>
+	<label for="inputNotaMax" data-i18n="notaMaxLabel">Nota máxima</label>
 	<input type="number" id="inputNotaMax" min="5" max="100" value="20" />
 	</div>
 
 	<div class="config__grupo">
-	<span class="config__rotulo">Métricas avaliadas</span>
-	<label class="check"><input type="checkbox" data-metrica="conteudo" checked /> Correção do conteúdo</label>
-	<label class="check"><input type="checkbox" data-metrica="raciocinio" checked /> Raciocínio e método</label>
-	<label class="check"><input type="checkbox" data-metrica="organizacao" /> Organização e estrutura</label>
-	<label class="check"><input type="checkbox" data-metrica="ortografia" /> Ortografia e gramática</label>
-	<label class="check"><input type="checkbox" data-metrica="caligrafia" /> Legibilidade da caligrafia</label>
+	<span class="config__rotulo" data-i18n="metricasTitulo">Métricas avaliadas</span>
+	<label class="check"><input type="checkbox" data-metrica="conteudo" checked /> <span data-i18n="metricaConteudo">Correção do conteúdo</span></label>
+	<label class="check"><input type="checkbox" data-metrica="raciocinio" checked /> <span data-i18n="metricaRaciocinio">Raciocínio e método</span></label>
+	<label class="check"><input type="checkbox" data-metrica="organizacao" /> <span data-i18n="metricaOrganizacao">Organização e estrutura</span></label>
+	<label class="check"><input type="checkbox" data-metrica="ortografia" /> <span data-i18n="metricaOrtografia">Ortografia e gramática</span></label>
+	<label class="check"><input type="checkbox" data-metrica="caligrafia" /> <span data-i18n="metricaCaligrafia">Legibilidade da caligrafia</span></label>
 	</div>
 
 	<div class="config__grupo">
-	<label for="txtCriterios">Critérios adicionais para a IA</label>
-	<textarea id="txtCriterios" rows="3" placeholder="Ex.: penalizar respostas sem justificação."></textarea>
+	<label for="txtCriterios" data-i18n="criteriosLabel">Critérios adicionais para a IA</label>
+	<textarea id="txtCriterios" rows="3" placeholder="Ex.: penalizar respostas sem justificação." data-i18n-placeholder="criteriosPlaceholder"></textarea>
 	</div>
 
 	<!-- ===== CHAVE DE CORREÇÃO (GABARITO) ===== -->
 	<div class="config__grupo">
-	<span class="config__rotulo">Chave de correção (gabarito) — opcional</span>
-	<p class="config__ajuda-texto">Carrega o gabarito para a IA comparar as respostas. Aceita PDF, foto da galeria ou foto tirada na hora.</p>
+	<span class="config__rotulo" data-i18n="chaveTitulo">Chave de correção (gabarito) — opcional</span>
+	<p class="config__ajuda-texto" data-i18n="chaveAjuda">Carrega o gabarito para a IA comparar as respostas. Aceita PDF, foto da galeria ou foto tirada na hora.</p>
 
 	<div class="tipo-toggle tipo-toggle--compacto" role="radiogroup" aria-label="Formato da chave">
 		<label class="tipo-toggle__opcao">
 		<input type="radio" name="tipoFicheiroChave" value="pdf" checked />
-		<span>📄 PDF</span>
+		<span data-i18n="optPdf">📄 PDF</span>
 		</label>
 		<label class="tipo-toggle__opcao">
 		<input type="radio" name="tipoFicheiroChave" value="foto" />
-		<span>📷 Fotos</span>
+		<span data-i18n="optFoto">📷 Fotos</span>
 		</label>
 	</div>
 
@@ -289,8 +360,8 @@
 		<!-- MODO PDF -->
 		<div class="dropzone__conteudo" id="dropzonePdfChave">
 		<span class="dropzone__icone">⇪</span>
-		<p id="dropzoneTextoPdfChave">Arrasta o PDF da chave aqui ou <u>clica para escolher</u></p>
-		<small id="dropzoneAjudaPdfChave">1 ficheiro PDF</small>
+		<p id="dropzoneTextoPdfChave" data-i18n="dzChavePdfTexto" data-i18n-html="true">Arrasta o PDF da chave aqui ou <u>clica para escolher</u></p>
+		<small id="dropzoneAjudaPdfChave" data-i18n="dzPdfAjuda">1 ficheiro PDF</small>
 		</div>
 
 		<!-- MODO FOTOS -->
@@ -298,16 +369,16 @@
 		<div class="dropzone__opcoes">
 			<div class="dropzone__opcao" id="opcaoUploadChave">
 			<span class="dropzone__icone">⇪</span>
-			<p><strong>Carregar fotos</strong></p>
-			<small>Escolher da galeria</small>
+			<p><strong data-i18n="dzFotosCarregar">Carregar fotos</strong></p>
+			<small data-i18n="dzFotosGaleria">Escolher da galeria</small>
 			</div>
 			<div class="dropzone__opcao" id="opcaoCameraChave">
 			<span class="dropzone__icone">📷</span>
-			<p><strong>Tirar foto</strong></p>
-			<small>Abrir câmera</small>
+			<p><strong data-i18n="dzFotosTirar">Tirar foto</strong></p>
+			<small data-i18n="dzFotosCamera">Abrir câmera</small>
 			</div>
 		</div>
-		<small class="dropzone__ajuda" id="dropzoneAjudaFotosChave">Várias fotos — uma por página da chave</small>
+		<small class="dropzone__ajuda" id="dropzoneAjudaFotosChave" data-i18n="dzChaveFotosAjuda">Várias fotos — uma por página da chave</small>
 		</div>
 
 	</div>
@@ -318,11 +389,11 @@
 
 	<div class="config__chave-acoes" id="chaveAcoes" hidden>
 		<span class="config__chave-resumo" id="chaveResumo"></span>
-		<button type="button" class="btn btn--pequeno" id="btnRemoverChave">Remover chave</button>
+		<button type="button" class="btn btn--pequeno" id="btnRemoverChave" data-i18n="chaveRemover">Remover chave</button>
 	</div>
 	</div>
 
-	<button class="btn btn--primario btn--largo" id="btnGuardarConfig">Guardar configurações</button>
+	<button class="btn btn--primario btn--largo" id="btnGuardarConfig" data-i18n="btnGuardar">Guardar configurações</button>
 </aside>
 
 <div class="painel-overlay" id="painelOverlay" hidden></div>
@@ -331,12 +402,6 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="js/app.js"></script>
-    <script>
-        // Inicializa a animação no container
-        const container = document.getElementById('animacaoContainer');
-        const animacao = new AnimacaoIA(container);
-        animacao.iniciar();
-    </script>
 
 </body>
 </html>
