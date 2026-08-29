@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animacão IA - CorretorIA</title>
+    <link rel="stylesheet" href="./css/animacao-ia.css" />
+</head>
+<body>
+	<h1>Alguma coisa<\h1>
+	<div id="animacaoContainer">
+		<!-- Aqui será injetada a animação -->
+    </div>
+    <script src="./js/animacao-ia.js"></script>
+    <script>
+        // Inicializa a animação no container
+        const container = document.getElementById('animacaoContainer');
+        const animacao = new AnimacaoIA(container);
+        animacao.iniciar();
+    </script>
+</body>
+</html>
