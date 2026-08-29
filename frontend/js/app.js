@@ -9,28 +9,32 @@
 "use strict";
 
 /* ---------- Referências ao DOM ---------- */
-const modalOverlay   = document.getElementById("modalOverlay");
-const btnAbrirTopo   = document.getElementById("btnAbrirModalTopo");
-const btnAbrirHero   = document.getElementById("btnAbrirModalHero");
+const modalOverlay = document.getElementById("modalOverlay");
+const btnAbrirTopo = document.getElementById("btnAbrirModalTopo");
+const btnAbrirHero = document.getElementById("btnAbrirModalHero");
 const btnFecharModal = document.getElementById("btnFecharModal");
-const formProva      = document.getElementById("formProva");
-const inputNome      = document.getElementById("inputNome");
-const inputNumero    = document.getElementById("inputNumero");
-const inputFicheiro  = document.getElementById("inputFicheiro");
-const dropzone       = document.getElementById("dropzone");
-const dropzoneTexto  = document.getElementById("dropzoneTexto");
-const dropzoneAjuda  = document.getElementById("dropzoneAjuda");
-const previewFotos   = document.getElementById("previewFotos");
-const listaProvas    = document.getElementById("listaProvas");
-const secFila        = document.getElementById("secFila");
-const toast          = document.getElementById("toast");
+const formProva = document.getElementById("formProva");
+const inputNome = document.getElementById("inputNome");
+const inputNumero = document.getElementById("inputNumero");
+const dropzoneTexto = document.getElementById("dropzoneTexto");
+const dropzoneAjuda = document.getElementById("dropzoneAjuda");
+const previewFotos = document.getElementById("previewFotos");
+const listaProvas = document.getElementById("listaProvas");
+const secFila = document.getElementById("secFila");
+const toast = document.getElementById("toast");
+const inputFicheiro = document.getElementById("inputFicheiro");
+const inputCamera = document.getElementById("inputCamera");
+
+const dropzone = document.getElementById("dropzone");
+const dropzoneConteudo = document.getElementById("dropzoneConteudo");
+
 
 /* ---------- Estado ---------- */
 const estado = {
-  tipo: "pdf",       // "pdf" | "foto"
-  pdf: null,         // File
-  fotos: [],         // File[]
-  provas: [],        // provas submetidas
+  tipo: "pdf", // "pdf" | "foto"
+  pdf: null, // File
+  fotos: [], // File[]
+  provas: [], // provas submetidas
 };
 
 /* ============================================================
@@ -63,6 +67,111 @@ document.addEventListener("keydown", (e) => {
 /* ============================================================
    ESCOLHA DO TIPO: PDF vs FOTOS
    ============================================================ */
+
+
+
+
+
+
+inputCamera.type = "file";
+inputCamera.accept = "image/*";
+inputCamera.capture = "environment";
+inputCamera.multiple = true;
+inputCamera.hidden = true;
+
+document.body.appendChild(inputCamera);
+
+formProva.tipoFicheiro.forEach((radio) => {
+  radio.addEventListener("change", () => {
+
+    estado.tipo = radio.value;
+    estado.pdf = null;
+    estado.fotos = [];
+
+    previewFotos.innerHTML = "";
+
+    if (estado.tipo === "pdf") {
+
+      // ==========================
+      // MODO PDF
+      // ==========================
+
+      inputFicheiro.accept = "application/pdf";
+      inputFicheiro.multiple = false;
+
+      dropzoneConteudo.innerHTML = `
+        <span class="dropzone__icone">⇪</span>
+
+        <p id="dropzoneTexto">
+          Arrasta o PDF aqui ou <u>clica para escolher</u>
+        </p>
+
+        <small id="dropzoneAjuda">
+          1 ficheiro PDF
+        </small>
+      `;
+
+    } else {
+
+      // ==========================
+      // MODO FOTOS
+      // ==========================
+
+      inputFicheiro.accept = "image/*";
+      inputFicheiro.multiple = true;
+
+      dropzoneConteudo.innerHTML = `
+
+        <div class="dropzone__opcoes">
+
+          <!-- UPLOAD -->
+          <div class="dropzone__opcao" id="opcaoUpload">
+
+            <span class="dropzone__icone">⇪</span>
+
+            <p>
+              <strong>Carregar fotos</strong>
+            </p>
+
+            <small>
+              Escolher da ficheiro (jpg, pnj)
+            </small>
+
+          </div>
+
+
+          <!-- CÂMERA -->
+          <div class="dropzone__opcao" id="opcaoCamera">
+
+            <span class="dropzone__icone">📷</span>
+
+            <p>
+              <strong>Tirar foto</strong>
+            </p>
+
+            <small>
+              Abrir câmera
+            </small>
+
+          </div>
+
+        </div>
+
+        <small id="dropzoneAjuda">
+          Várias fotos — uma por página da prova
+        </small>
+      `;
+    }
+
+    limparErro("ficheiro");
+  });
+});
+
+
+
+
+
+
 formProva.tipoFicheiro.forEach((radio) => {
   radio.addEventListener("change", () => {
     estado.tipo = radio.value;
@@ -73,35 +182,115 @@ formProva.tipoFicheiro.forEach((radio) => {
     if (estado.tipo === "pdf") {
       inputFicheiro.accept = "application/pdf";
       inputFicheiro.multiple = false;
-      dropzoneTexto.innerHTML = "Arrasta o PDF aqui ou <u>clica para escolher</u>";
+      dropzoneTexto.innerHTML =
+        "Arrasta o PDF aqui ou <u>clica para escolher</u>";
       dropzoneAjuda.textContent = "1 ficheiro PDF";
     } else {
       inputFicheiro.accept = "image/*";
       inputFicheiro.multiple = true;
-      dropzoneTexto.innerHTML = "Arrasta as fotos aqui ou <u>clica para escolher</u>";
+
+      dropzoneTexto.innerHTML = `
+			Arrasta as fotos aqui ou
+			<span class="dropzone__acao">
+				<u>clica para escolher</u>
+			</span>
+			<span class="dropzone__acao dropzone__camera">
+				📷 <u>Tirar foto</u>
+			</span>
+		`;
+
       dropzoneAjuda.textContent = "Várias fotos — uma por página da prova";
     }
+
     limparErro("ficheiro");
   });
 });
 
+
+
+
 /* ============================================================
    DROPZONE (clique + arrastar e largar)
    ============================================================ */
-dropzone.addEventListener("click", () => inputFicheiro.click());
+dropzone.addEventListener("click", (e) => {
+
+  // ==========================================
+  // BOTÃO DA CÂMERA
+  // ==========================================
+
+  const camera = e.target.closest("#opcaoCamera");
+
+  if (camera) {
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    inputCamera.click();
+
+    return;
+  }
+
+
+  // ==========================================
+  // BOTÃO DE UPLOAD
+  // ==========================================
+
+  const upload = e.target.closest("#opcaoUpload");
+
+  if (upload) {
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    inputFicheiro.click();
+
+    return;
+  }
+
+
+  // ==========================================
+  // MODO PDF
+  // ==========================================
+
+  if (estado.tipo === "pdf") {
+
+    inputFicheiro.click();
+
+  }
+
+});
+
+inputCamera.addEventListener("change", () => {
+
+  const fotos = Array.from(inputCamera.files);
+
+  if (!fotos.length) {
+    return;
+  }
+
+  console.log("Fotos capturadas:", fotos);
+
+  // Aqui vamos usar a MESMA função
+  // que já utilizas para processar inputFicheiro.
+
+  inputCamera.value = "";
+
+});
+
+
 
 ["dragover", "dragenter"].forEach((evt) =>
   dropzone.addEventListener(evt, (e) => {
     e.preventDefault();
     dropzone.classList.add("arrastar");
-  })
+  }),
 );
 
 ["dragleave", "drop"].forEach((evt) =>
   dropzone.addEventListener(evt, (e) => {
     e.preventDefault();
     dropzone.classList.remove("arrastar");
-  })
+  }),
 );
 
 dropzone.addEventListener("drop", (e) => {
@@ -126,11 +315,15 @@ function adicionarFicheiros(fileList) {
     }
     estado.pdf = ficheiro;
     dropzoneTexto.innerHTML = `✅ <strong>${escaparHtml(ficheiro.name)}</strong>`;
-    dropzoneAjuda.textContent = formatarTamanho(ficheiro.size) + " — clica para trocar";
+    dropzoneAjuda.textContent =
+      formatarTamanho(ficheiro.size) + " — clica para trocar";
   } else {
     const imagens = ficheiros.filter((f) => f.type.startsWith("image/"));
     if (imagens.length !== ficheiros.length) {
-      mostrarErro("ficheiro", "Alguns ficheiros foram ignorados: apenas imagens são aceites.");
+      mostrarErro(
+        "ficheiro",
+        "Alguns ficheiros foram ignorados: apenas imagens são aceites.",
+      );
     }
     estado.fotos.push(...imagens);
     renderizarPreviewFotos();
@@ -303,10 +496,11 @@ function simularCorrecaoIA(prova) {
     badge.textContent = `✅ Corrigida — Nota: ${prova.nota}/${prova.notaMaxima}`;
 
     card.appendChild(criarBarraExportacao(prova));
-    mostrarToast(`Prova de ${prova.nome} corrigida: ${prova.nota}/${prova.notaMaxima}`);
+    mostrarToast(
+      `Prova de ${prova.nome} corrigida: ${prova.nota}/${prova.notaMaxima}`,
+    );
   }, duracao);
 }
-
 
 /* ============================================================
    UTILITÁRIOS
@@ -333,19 +527,19 @@ function escaparHtml(texto) {
 /* ============================================================
    PAINEL DE CONFIGURAÇÕES + CHAT COM A IA
    ============================================================ */
-const painelConfig   = document.getElementById("painelConfig");
-const painelChat     = document.getElementById("painelChat");
-const painelOverlay  = document.getElementById("painelOverlay");
-const btnConfig      = document.getElementById("btnConfig");
-const btnFecharConfig= document.getElementById("btnFecharConfig");
-const btnChat        = document.getElementById("btnChat");
-const btnAbrirChat   = document.getElementById("btnAbrirChat");
-const btnFecharChat  = document.getElementById("btnFecharChat");
-const chatForm       = document.getElementById("chatForm");
-const chatInput      = document.getElementById("chatInput");
-const chatMensagens  = document.getElementById("chatMensagens");
-const rangeTolerancia= document.getElementById("rangeTolerancia");
-const valTolerancia  = document.getElementById("valTolerancia");
+const painelConfig = document.getElementById("painelConfig");
+const painelChat = document.getElementById("painelChat");
+const painelOverlay = document.getElementById("painelOverlay");
+const btnConfig = document.getElementById("btnConfig");
+const btnFecharConfig = document.getElementById("btnFecharConfig");
+const btnChat = document.getElementById("btnChat");
+const btnAbrirChat = document.getElementById("btnAbrirChat");
+const btnFecharChat = document.getElementById("btnFecharChat");
+const chatForm = document.getElementById("chatForm");
+const chatInput = document.getElementById("chatInput");
+const chatMensagens = document.getElementById("chatMensagens");
+const rangeTolerancia = document.getElementById("rangeTolerancia");
+const valTolerancia = document.getElementById("valTolerancia");
 const btnGuardarConfig = document.getElementById("btnGuardarConfig");
 
 /* ---------- Configuração de avaliação ---------- */
@@ -363,7 +557,9 @@ function carregarConfig() {
   try {
     const guardado = JSON.parse(localStorage.getItem(CONFIG_CHAVE) || "null");
     if (guardado) Object.assign(config, guardado);
-  } catch (_) { /* ignora dados inválidos */ }
+  } catch (_) {
+    /* ignora dados inválidos */
+  }
 
   document.getElementById("selRigor").value = config.rigor;
   rangeTolerancia.value = config.tolerancia;
@@ -378,7 +574,8 @@ function carregarConfig() {
 function guardarConfig(silencioso) {
   config.rigor = document.getElementById("selRigor").value;
   config.tolerancia = Number(rangeTolerancia.value);
-  config.notaMaxima = Number(document.getElementById("inputNotaMax").value) || 20;
+  config.notaMaxima =
+    Number(document.getElementById("inputNotaMax").value) || 20;
   config.criterios = document.getElementById("txtCriterios").value.trim();
   config.metricas = Array.from(document.querySelectorAll("[data-metrica]"))
     .filter((cb) => cb.checked)
@@ -401,10 +598,11 @@ rangeTolerancia.addEventListener("input", () => {
 });
 btnGuardarConfig.addEventListener("click", () => guardarConfig(false));
 
-
 /* ---------- Abrir / fechar painéis ---------- */
 function atualizarOverlay() {
-  const algumAberto = painelConfig.classList.contains("aberto") || painelChat.classList.contains("aberto");
+  const algumAberto =
+    painelConfig.classList.contains("aberto") ||
+    painelChat.classList.contains("aberto");
   painelOverlay.hidden = !algumAberto;
   btnAbrirChat.hidden = painelChat.classList.contains("aberto");
 }
@@ -415,7 +613,10 @@ function alternarConfig() {
 }
 
 function alternarChat(forcar) {
-  const abrir = typeof forcar === "boolean" ? forcar : !painelChat.classList.contains("aberto");
+  const abrir =
+    typeof forcar === "boolean"
+      ? forcar
+      : !painelChat.classList.contains("aberto");
   painelChat.classList.toggle("aberto", abrir);
   atualizarOverlay();
   if (abrir) chatInput.focus();
@@ -459,16 +660,24 @@ function responderIA(pergunta) {
 
     if (p.includes("rigor")) {
       resposta = `O nível de rigorosidade atual é "${config.rigor}", com ${config.tolerancia}% de tolerância a erros ortográficos. Podes alterá-lo no painel de configurações (⚙️).`;
-    } else if (p.includes("métrica") || p.includes("metrica") || p.includes("critério") || p.includes("criterio")) {
+    } else if (
+      p.includes("métrica") ||
+      p.includes("metrica") ||
+      p.includes("critério") ||
+      p.includes("criterio")
+    ) {
       resposta = `Estou a avaliar estas métricas: ${config.metricas.join(", ") || "nenhuma selecionada"}. Nota máxima: ${config.notaMaxima}.`;
     } else if (p.includes("nota") || p.includes("prova")) {
       const total = estado.provas.length;
-      const corrigidas = estado.provas.filter((pr) => pr.estadoAnalise === "concluido").length;
+      const corrigidas = estado.provas.filter(
+        (pr) => pr.estadoAnalise === "concluido",
+      ).length;
       resposta = total
         ? `Tens ${total} prova(s) submetida(s), ${corrigidas} já corrigida(s).`
         : "Ainda não carregaste nenhuma prova. Usa o botão “+ Nova prova”.";
     } else {
-      resposta = "Entendido. Posso ajudar com critérios de avaliação, níveis de rigorosidade e explicação das notas atribuídas.";
+      resposta =
+        "Entendido. Posso ajudar com critérios de avaliação, níveis de rigorosidade e explicação das notas atribuídas.";
     }
 
     adicionarMensagem(resposta, "ia");
@@ -500,9 +709,9 @@ const METRICAS_ROTULOS = {
 
 /* Quanto mais rigoroso, mais penalizado é o desempenho bruto */
 const FATOR_RIGOR = {
-  "flexivel": 1.08,
-  "equilibrado": 1.0,
-  "rigoroso": 0.9,
+  flexivel: 1.08,
+  equilibrado: 1.0,
+  rigoroso: 0.9,
   "muito-rigoroso": 0.8,
 };
 
@@ -531,12 +740,16 @@ function calcularNota(prova) {
     };
   });
 
-  const nota = Number(detalhes.reduce((soma, d) => soma + d.pontos, 0).toFixed(1));
+  const nota = Number(
+    detalhes.reduce((soma, d) => soma + d.pontos, 0).toFixed(1),
+  );
 
   const comentario = [
     `Avaliação com rigorosidade "${cfg.rigor}" e ${cfg.tolerancia}% de tolerância a erros de forma.`,
     `Métricas consideradas: ${detalhes.map((d) => `${d.rotulo} (${d.percentagem}%)`).join("; ")}.`,
-    cfg.criterios ? `Critérios adicionais aplicados: ${cfg.criterios}` : "Sem critérios adicionais definidos.",
+    cfg.criterios
+      ? `Critérios adicionais aplicados: ${cfg.criterios}`
+      : "Sem critérios adicionais definidos.",
     nota >= notaMaxima * 0.75
       ? "Desempenho global sólido; poucas lacunas identificadas."
       : nota >= notaMaxima * 0.5
@@ -576,30 +789,50 @@ function campoCsv(valor) {
 
 function exportarCSV(provas) {
   const linhas = [
-    ["Nome", "Número", "Rigorosidade", "Tolerância (%)", "Métricas", "Critérios", "Nota", "Nota máxima", "Comentários da IA"]
-      .map(campoCsv).join(","),
+    [
+      "Nome",
+      "Número",
+      "Rigorosidade",
+      "Tolerância (%)",
+      "Métricas",
+      "Critérios",
+      "Nota",
+      "Nota máxima",
+      "Comentários da IA",
+    ]
+      .map(campoCsv)
+      .join(","),
   ];
 
   provas.forEach((prova) => {
     const cfg = prova.config || config;
-    linhas.push([
-      prova.nome,
-      prova.numero,
-      cfg.rigor,
-      cfg.tolerancia,
-      (prova.detalhes || []).map((d) => `${d.rotulo}: ${d.percentagem}%`).join(" | "),
-      cfg.criterios || "—",
-      prova.nota,
-      prova.notaMaxima,
-      prova.comentario,
-    ].map(campoCsv).join(","));
+    linhas.push(
+      [
+        prova.nome,
+        prova.numero,
+        cfg.rigor,
+        cfg.tolerancia,
+        (prova.detalhes || [])
+          .map((d) => `${d.rotulo}: ${d.percentagem}%`)
+          .join(" | "),
+        cfg.criterios || "—",
+        prova.nota,
+        prova.notaMaxima,
+        prova.comentario,
+      ]
+        .map(campoCsv)
+        .join(","),
+    );
   });
 
   const csv = "\uFEFF" + linhas.join("\r\n");
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
-  const nomeFicheiro = provas.length === 1
-    ? `correcao-${provas[0].numero || provas[0].nome}.csv`
-    : "correcoes.csv";
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8;" }),
+  );
+  const nomeFicheiro =
+    provas.length === 1
+      ? `correcao-${provas[0].numero || provas[0].nome}.csv`
+      : "correcoes.csv";
 
   const link = document.createElement("a");
   link.href = url;
@@ -612,7 +845,10 @@ function exportarCSV(provas) {
 function exportarPDF(prova) {
   const cfg = prova.config || config;
   const linhasMetricas = (prova.detalhes || [])
-    .map((d) => `<tr><td>${escaparHtml(d.rotulo)}</td><td>${d.percentagem}%</td><td>${d.pontos}</td></tr>`)
+    .map(
+      (d) =>
+        `<tr><td>${escaparHtml(d.rotulo)}</td><td>${d.percentagem}%</td><td>${d.pontos}</td></tr>`,
+    )
     .join("");
 
   const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8" />
@@ -665,7 +901,9 @@ function exportarPDF(prova) {
 const btnExportarTudo = document.getElementById("btnExportarTudo");
 if (btnExportarTudo) {
   btnExportarTudo.addEventListener("click", () => {
-    const corrigidas = estado.provas.filter((p) => p.estadoAnalise === "concluido");
+    const corrigidas = estado.provas.filter(
+      (p) => p.estadoAnalise === "concluido",
+    );
     if (!corrigidas.length) {
       mostrarToast("Ainda não há provas corrigidas para exportar.");
       return;
@@ -673,3 +911,50 @@ if (btnExportarTudo) {
     exportarCSV(corrigidas);
   });
 }
+
+/* ============================================================
+   TEMA — LIGHT / DARK
+   ============================================================ */
+
+const btnTema = document.getElementById("btnTema");
+
+// Carregar o tema guardado
+const temaSalvo = localStorage.getItem("tema");
+
+if (temaSalvo === "dark" || temaSalvo === "light") {
+  document.documentElement.setAttribute("data-theme", temaSalvo);
+}
+
+// Atualiza o botão conforme o tema atual
+function atualizarBotaoTema() {
+  const temaAtual = document.documentElement.getAttribute("data-theme");
+
+  if (temaAtual === "dark") {
+    btnTema.textContent = "☀️";
+    btnTema.setAttribute("aria-label", "Activar modo claro");
+    btnTema.setAttribute("title", "Modo claro");
+  } else {
+    btnTema.textContent = "🌙";
+    btnTema.setAttribute("aria-label", "Activar modo escuro");
+    btnTema.setAttribute("title", "Modo escuro");
+  }
+}
+
+// Alternar tema ao clicar
+btnTema.addEventListener("click", () => {
+  const temaAtual =
+    document.documentElement.getAttribute("data-theme") || "light";
+
+  const novoTema = temaAtual === "dark" ? "light" : "dark";
+
+  document.documentElement.setAttribute("data-theme", novoTema);
+
+  // Guardar preferência
+  localStorage.setItem("tema", novoTema);
+
+  // Atualizar botão
+  atualizarBotaoTema();
+});
+
+// Inicializar botão
+atualizarBotaoTema();

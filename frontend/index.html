@@ -19,7 +19,16 @@
 	<span>Corretor<strong>IA</strong></span>
 	</div>
 	<div class="topo__acoes">
-	<button class="btn btn--icone" id="btnTema" aria-label="Abrir chat com a IA" title="Chat com a IA">💬</button>
+	<button class="btn btn--icone" id="btnChat" aria-label="Abrir chat com a IA" title="Chat com a IA">💬</button>
+	<button
+		class="btn btn--icone"
+		id="btnTema"
+		aria-label="Activar modo claro"
+		title="Modo claro"
+		>
+		☀️
+	</button>
+
 	<button class="btn btn--icone" id="btnConfig" aria-label="Abrir configurações" title="Configurações">⚙️</button>
 	<button class="btn btn--primario" id="btnAbrirModalTopo">+ Nova prova</button>
 	</div>
@@ -98,12 +107,36 @@
 
 		<!-- Zona de upload -->
 		<div class="dropzone" id="dropzone">
-		<input type="file" id="inputFicheiro" accept="application/pdf" hidden />
-		<div class="dropzone__conteudo">
-			<span class="dropzone__icone">⇪</span>
-			<p id="dropzoneTexto">Arrasta o PDF aqui ou <u>clica para escolher</u></p>
-			<small id="dropzoneAjuda">1 ficheiro PDF</small>
-		</div>
+
+			<!-- Input normal -->
+			<input
+				type="file"
+				id="inputFicheiro"
+				accept="application/pdf"
+				hidden
+			/>
+
+			<!-- Input da câmera -->
+			<input
+				type="file"
+				id="inputCamera"
+				accept="image/*"
+				capture="environment"
+				hidden
+			/>
+
+			<div class="dropzone__conteudo" id="dropzoneConteudo">
+
+				<span class="dropzone__icone">⇪</span>
+
+				<p id="dropzoneTexto">
+					Arrasta o PDF aqui ou <u>clica para escolher</u>
+				</p>
+
+				<small id="dropzoneAjuda">1 ficheiro PDF</small>
+
+			</div>
+
 		</div>
 		<small class="campo__erro" data-erro="ficheiro"></small>
 
