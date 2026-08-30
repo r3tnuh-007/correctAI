@@ -102,11 +102,10 @@ async def comparator(student_exam: str, exam_key: str) -> str:
     """generate response using the model"""
     if exam_key and len(exam_key.strip()) > 10:
         prompt = f"""You are a teacher and your task is to evaluate a student's answer based
-on the provided exam key. You should provide a detailed evaluation, 
-highlighting the strengths and weaknesses of the student's answer, and give a score based on 
-the exam key(if available, if not, provide a general evaluation with a score between 0 and 100). 
+on the provided exam key. You must give a score based on 
+the exam key(if available, if not, provide a general evaluation with a score between 0 and 20). 
 If the student's answer is not related to the exam key or is off-topic,
-please indicate that in your evaluation.
+give a score of 0. OBS: split the answer this way: <reasoning> | <grade>.
 
 **Exam Key:**
 {exam_key}
@@ -115,11 +114,9 @@ please indicate that in your evaluation.
 Answer:"""
     else:
         prompt = f"""You are a teacher and your task is to evaluate a student's exam. 
-You should provide a detailed evaluation, 
-highlighting the strengths and weaknesses of the student's answer, and give a score based on 
-the exam key(if available, if not, provide a general evaluation with a score between 0 and 100). 
-If the student's answer is not related to the exam key or is off-topic,
-please indicate that in your evaluation, and an answer cannot be validate if you don't know the question.
+You must give a score between 0 and 20). 
+If the student's answer is not related to the truth or is off-topic,
+give a score of 0. OBS: split the answer this way: <reasoning> | <grade>.
 
 **student's exam:** {student_exam}
 Answer:"""
@@ -331,6 +328,10 @@ async def upload_multiple_images(
         print(f"\n\n\n{VERDE} === [Exam Key] ==={RESET}\n{AZUL}{key_exam}{RESET}\n")
         evaluation = await comparator(exam, key_exam)
         print(f"\n\n\n{VERDE} === [Evaluation] ==={RESET}\n{AZUL}{evaluation}{RESET}\n")
+        try:
+            note = int(evaluation.split("|")[-1].strip()) if "|" in evaluation else 0
+        except ValueError:
+            note = -42
         # Return the response with student data, summary, results, and errors
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -345,7 +346,7 @@ async def upload_multiple_images(
                 "results": resultados,
                 "errors": erros if erros else None,
                 "evaluation": evaluation,
-                "nota": 15,
+                "nota": note,
                 "exam": exam
             }
         )    
