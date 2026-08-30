@@ -18,7 +18,7 @@ class ApiService {
 
         // Endpoints
         this.endpoints = {
-            corrigir: '/corrigir',
+            corrigir: '/images-upload',
             status: '/status',
             download: '/download',
             health: '/health'
