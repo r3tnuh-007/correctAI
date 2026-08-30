@@ -85,11 +85,13 @@ async function corrigirProvaNoServidor(prova, aoConcluir) {
       }));
     }
   } catch (erro) {
+    const mensagemErro = (erro && erro.message) || String(erro);
     prova.estadoAnalise = "erro";
+    prova.erroMensagem = mensagemErro;
     atualizarProvaNaFilaFn(prova);
     mostrarToast(t("toastCorrecaoErro", {
       nome: prova.nome,
-      mensagem: (erro && erro.message) || String(erro),
+      mensagem: mensagemErro,
     }));
   } finally {
     if (aoConcluir) aoConcluir(prova);

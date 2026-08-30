@@ -1339,6 +1339,19 @@ h3 {
   color: var(--acento);
 }
 
+.btn--perigo:hover {
+  border-color: var(--erro);
+
+  color: var(--erro);
+}
+
+.prova-card__erro-msg {
+  width: 100%;
+  font-size: 0.78rem;
+  color: var(--erro);
+  margin-top: 0.35rem;
+}
+
 .prova-card__acoes {
   display: flex;
 

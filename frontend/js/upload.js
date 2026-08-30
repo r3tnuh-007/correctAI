@@ -46,20 +46,20 @@ function criarUploadAnexo(opcoes) {
     if (campoErro) limparErro(campoErro);
   }
 
-	function aplicarVisualTipo() {
-	if (dropzonePdf) dropzonePdf.style.display = estado.tipo === "pdf" ? "" : "none";
-	if (dropzoneFotos) dropzoneFotos.style.display = estado.tipo === "foto" ? "block" : "none";
+  function aplicarVisualTipo() {
+    if (dropzonePdf) dropzonePdf.style.display = estado.tipo === "pdf" ? "" : "none";
+    if (dropzoneFotos) dropzoneFotos.style.display = estado.tipo === "foto" ? "block" : "none";
 
-	if (inputFicheiro) {
-		if (estado.tipo === "foto") {
-		inputFicheiro.setAttribute("accept", "image/*");
-		inputFicheiro.multiple = true;   // também permite escolher várias fotos de uma vez
-		} else {
-		inputFicheiro.setAttribute("accept", "application/pdf");
-		inputFicheiro.multiple = false;
-		}
-	}
-	}
+    if (inputFicheiro) {
+      if (estado.tipo === "foto") {
+        inputFicheiro.setAttribute("accept", "image/*");
+        inputFicheiro.multiple = true;
+      } else {
+        inputFicheiro.setAttribute("accept", "application/pdf");
+        inputFicheiro.multiple = false;
+      }
+    }
+  }
 
   function resetarTextoPdf() {
     if (dropzoneTextoPdf) dropzoneTextoPdf.innerHTML = t(chaveTextoPdf || "dzPdfTexto");

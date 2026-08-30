@@ -142,160 +142,83 @@ class ApiService {
      * @throws {Error} Se houver falha na conexão ou na API
      */
     async enviarParaCorrecao(formData, callbacks = {}) {
-        const { onProgress, onComplete, onError } = callbacks;
+    const { onProgress, onComplete, onError } = callbacks;
 
-        // Verifica conexão antes de enviar
-        const online = await this.verificarSaude();
+    // Verifica conexão antes de enviar
+    const online = await this.verificarSaude();
 
-        if (!online) {
-            const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet e tente novamente.');
+    if (!online) {
+        const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet e tente novamente.');
+        this.ultimoErro = erro;
+        if (onError) onError(erro);
+        throw erro;
+    }
+
+    if (onProgress) onProgress(0, 'upload');
+
+    try {
+        const url = `${this.baseUrl}${this.endpoints.corrigir}`;
+
+        // Nota: não enviamos 'Content-Type' aqui de propósito — o
+        // browser define automaticamente o "multipart/form-data"
+        // com o boundary correto quando o body é um FormData.
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            signal: AbortSignal.timeout(this.timeout)
+        });
+
+        if (onProgress) onProgress(100, 'upload');
+
+        if (!response.ok) {
+            let mensagemErro = `❌ Erro ${response.status}: `;
+            try {
+                const resposta = await response.json();
+                mensagemErro += resposta.mensagem || resposta.error || response.statusText;
+            } catch (e) {
+                mensagemErro += response.statusText || 'Erro desconhecido no servidor.';
+            }
+
+            const erro = new Error(mensagemErro);
+            this.ultimoErro = erro;
+            this.conectado = false;
+            if (onError) onError(erro);
+            throw erro;
+        }
+
+        let resposta;
+        try {
+            resposta = await response.json();
+        } catch (e) {
+            const erro = new Error('❌ Resposta inválida do servidor.');
             this.ultimoErro = erro;
             if (onError) onError(erro);
             throw erro;
         }
 
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            let timeoutId = null;
-            let concluido = false;
+        this.conectado = true;
+        if (onComplete) onComplete(resposta);
+        return resposta;
+    } catch (error) {
+        if (error && typeof error.message === 'string' && error.message.startsWith('❌')) {
+            throw error;
+        }
 
-            // ==========================================
-            // CONFIGURAÇÃO DO TIMEOUT
-            // ==========================================
-            const definirTimeout = () => {
-                timeoutId = setTimeout(() => {
-                    if (!concluido) {
-                        xhr.abort();
-                        const erro = new Error('⏰ Tempo limite excedido. O servidor demorou muito para responder.');
-                        this.ultimoErro = erro;
-                        this.conectado = false;
-                        if (onError) onError(erro);
-                        reject(erro);
-                    }
-                }, this.timeout);
-            };
+        if (error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+            const erro = new Error('⏰ Tempo limite excedido. O servidor demorou muito para responder.');
+            this.ultimoErro = erro;
+            this.conectado = false;
+            if (onError) onError(erro);
+            throw erro;
+        }
 
-            // ==========================================
-            // PROGRESSO DO UPLOAD
-            // ==========================================
-            if (onProgress) {
-                xhr.upload.addEventListener('progress', (event) => {
-                    if (event.lengthComputable) {
-                        const percentual = Math.round((event.loaded / event.total) * 100);
-                        onProgress(percentual, 'upload');
-                    }
-                });
-            }
-
-            // ==========================================
-            // PROGRESSO DO DOWNLOAD
-            // ==========================================
-            xhr.addEventListener('progress', (event) => {
-                if (event.lengthComputable && onProgress) {
-                    const percentual = Math.round((event.loaded / event.total) * 100);
-                    onProgress(percentual, 'processando');
-                }
-            });
-
-            // ==========================================
-            // RESPOSTA COMPLETA
-            // ==========================================
-            xhr.addEventListener('load', () => {
-                concluido = true;
-                clearTimeout(timeoutId);
-
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        const resposta = JSON.parse(xhr.responseText);
-                        this.conectado = true;
-                        if (onComplete) onComplete(resposta);
-                        resolve(resposta);
-                    } catch (e) {
-                        const erro = new Error('❌ Resposta inválida do servidor.');
-                        this.ultimoErro = erro;
-                        if (onError) onError(erro);
-                        reject(erro);
-                    }
-                } else {
-                    let mensagemErro = `❌ Erro ${xhr.status}: `;
-
-                    try {
-                        const resposta = JSON.parse(xhr.responseText);
-                        mensagemErro += resposta.mensagem || resposta.error || xhr.statusText;
-                    } catch (e) {
-                        mensagemErro += xhr.statusText || 'Erro desconhecido no servidor.';
-                    }
-
-                    const erro = new Error(mensagemErro);
-                    this.ultimoErro = erro;
-                    this.conectado = false;
-                    if (onError) onError(erro);
-                    reject(erro);
-                }
-            });
-
-            // ==========================================
-            // ERROS DE REDE
-            // ==========================================
-            xhr.addEventListener('error', () => {
-                concluido = true;
-                clearTimeout(timeoutId);
-
-                const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet.');
-                this.ultimoErro = erro;
-                this.conectado = false;
-                if (onError) onError(erro);
-                reject(erro);
-            });
-
-            // ==========================================
-            // TIMEOUT
-            // ==========================================
-            xhr.addEventListener('timeout', () => {
-                concluido = true;
-                clearTimeout(timeoutId);
-
-                const erro = new Error('⏰ Tempo limite excedido. O servidor demorou muito para responder.');
-                this.ultimoErro = erro;
-                this.conectado = false;
-                if (onError) onError(erro);
-                reject(erro);
-            });
-
-            // ==========================================
-            // ABORT
-            // ==========================================
-            xhr.addEventListener('abort', () => {
-                concluido = true;
-                clearTimeout(timeoutId);
-
-                const erro = new Error('⛔ Requisição cancelada.');
-                this.ultimoErro = erro;
-                if (onError) onError(erro);
-                reject(erro);
-            });
-
-            // ==========================================
-            // ENVIA A REQUISIÇÃO
-            // ==========================================
-            try {
-                const url = `${this.baseUrl}${this.endpoints.corrigir}`;
-                xhr.open('POST', url, true);
-                xhr.timeout = this.timeout;
-
-                definirTimeout();
-                xhr.send(formData);
-            } catch (error) {
-                concluido = true;
-                clearTimeout(timeoutId);
-                const erro = new Error(`❌ Erro ao enviar: ${error.message}`);
-                this.ultimoErro = erro;
-                this.conectado = false;
-                if (onError) onError(erro);
-                reject(erro);
-            }
-        });
+        const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet.');
+        this.ultimoErro = erro;
+        this.conectado = false;
+        if (onError) onError(erro);
+        throw erro;
     }
+}
 
     /**
      * Verifica o status de uma correção

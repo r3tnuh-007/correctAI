@@ -23,7 +23,6 @@ function formatarTamanho(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-
 let toastTimeoutId = null;
 let esconderToastAoClicar = null;
 
