@@ -13,7 +13,7 @@ class ApiService {
         // ==========================================
         // CONFIGURAÇÕES DA API
         // ==========================================
-        this.baseUrl = 'https://canned-tainted-washstand.ngrok-free.dev'; // ALTERE PARA SUA URL
+        this.baseUrl = 'https://canned-tainted-washstand.ngrok-free.dev';
         this.timeout = 300000; // 5 minutos
 
         // Endpoints
@@ -24,10 +24,10 @@ class ApiService {
             health: '/health'
         };
 
-        // Headers
+        // Headers padrão (para requisições JSON)
         this.headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true'  // 🔑 CRUCIAL para ngrok
         };
 
         // ==========================================
@@ -53,19 +53,35 @@ class ApiService {
         this.verificandoConexao = true;
 
         try {
+            console.log(`📡 Verificando saúde: ${this.baseUrl}${this.endpoints.health}`);
+
             const response = await fetch(`${this.baseUrl}${this.endpoints.health}`, {
                 method: 'GET',
-                headers: this.headers,
+                headers: {
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'  // 🔑 CRUCIAL para ngrok
+                },
                 signal: AbortSignal.timeout(5000)
             });
 
-            this.conectado = response.ok;
+            console.log(`📡 Health check status: ${response.status}`);
 
-            if (!this.conectado) {
-                this.ultimoErro = new Error(`Servidor respondeu com status ${response.status}`);
+            // Verifica se a resposta é JSON (e não a página de aviso do ngrok)
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+                console.log('✅ Health check bem-sucedido:', data);
+                this.conectado = true;
+                this.ultimoErro = null;
+                return true;
+            } else {
+                // Se não for JSON, provavelmente é a página de aviso do ngrok
+                console.warn('⚠️ Resposta não é JSON (possível página de aviso do ngrok)');
+                this.conectado = false;
+                this.ultimoErro = new Error('Servidor respondeu com página de aviso (ngrok). Verifique o cabeçalho ngrok-skip-browser-warning.');
+                return false;
             }
 
-            return this.conectado;
         } catch (error) {
             this.conectado = false;
             this.ultimoErro = error;
@@ -142,83 +158,85 @@ class ApiService {
      * @throws {Error} Se houver falha na conexão ou na API
      */
     async enviarParaCorrecao(formData, callbacks = {}) {
-    const { onProgress, onComplete, onError } = callbacks;
+        const { onProgress, onComplete, onError } = callbacks;
 
-    // Verifica conexão antes de enviar
-    const online = await this.verificarSaude();
+        // Verifica conexão antes de enviar
+        const online = await this.verificarSaude();
 
-    if (!online) {
-        const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet e tente novamente.');
-        this.ultimoErro = erro;
-        if (onError) onError(erro);
-        throw erro;
-    }
+        if (!online) {
+            const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet e tente novamente.');
+            this.ultimoErro = erro;
+            if (onError) onError(erro);
+            throw erro;
+        }
 
-    if (onProgress) onProgress(0, 'upload');
+        if (onProgress) onProgress(0, 'upload');
 
-    try {
-        const url = `${this.baseUrl}${this.endpoints.corrigir}`;
+        try {
+            const url = `${this.baseUrl}${this.endpoints.corrigir}`;
+            console.log(`📡 Enviando para: ${url}`);
 
-        // Nota: não enviamos 'Content-Type' aqui de propósito — o
-        // browser define automaticamente o "multipart/form-data"
-        // com o boundary correto quando o body é um FormData.
-        const response = await fetch(url, {
-            method: 'POST',
-            body: formData,
-            signal: AbortSignal.timeout(this.timeout)
-        });
+            // 🔑 IMPORTANTE: Adicionar ngrok-skip-browser-warning ao enviar
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'  // 🔑 CRUCIAL para ngrok
+                },
+                signal: AbortSignal.timeout(this.timeout)
+            });
 
-        if (onProgress) onProgress(100, 'upload');
+            if (onProgress) onProgress(100, 'upload');
 
-        if (!response.ok) {
-            let mensagemErro = `❌ Erro ${response.status}: `;
-            try {
-                const resposta = await response.json();
-                mensagemErro += resposta.mensagem || resposta.error || response.statusText;
-            } catch (e) {
-                mensagemErro += response.statusText || 'Erro desconhecido no servidor.';
+            if (!response.ok) {
+                let mensagemErro = `❌ Erro ${response.status}: `;
+                try {
+                    const resposta = await response.json();
+                    mensagemErro += resposta.mensagem || resposta.error || response.statusText;
+                } catch (e) {
+                    mensagemErro += response.statusText || 'Erro desconhecido no servidor.';
+                }
+
+                const erro = new Error(mensagemErro);
+                this.ultimoErro = erro;
+                this.conectado = false;
+                if (onError) onError(erro);
+                throw erro;
             }
 
-            const erro = new Error(mensagemErro);
+            let resposta;
+            try {
+                resposta = await response.json();
+            } catch (e) {
+                const erro = new Error('❌ Resposta inválida do servidor.');
+                this.ultimoErro = erro;
+                if (onError) onError(erro);
+                throw erro;
+            }
+
+            this.conectado = true;
+            if (onComplete) onComplete(resposta);
+            return resposta;
+        } catch (error) {
+            if (error && typeof error.message === 'string' && error.message.startsWith('❌')) {
+                throw error;
+            }
+
+            if (error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+                const erro = new Error('⏰ Tempo limite excedido. O servidor demorou muito para responder.');
+                this.ultimoErro = erro;
+                this.conectado = false;
+                if (onError) onError(erro);
+                throw erro;
+            }
+
+            const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet.');
             this.ultimoErro = erro;
             this.conectado = false;
             if (onError) onError(erro);
             throw erro;
         }
-
-        let resposta;
-        try {
-            resposta = await response.json();
-        } catch (e) {
-            const erro = new Error('❌ Resposta inválida do servidor.');
-            this.ultimoErro = erro;
-            if (onError) onError(erro);
-            throw erro;
-        }
-
-        this.conectado = true;
-        if (onComplete) onComplete(resposta);
-        return resposta;
-    } catch (error) {
-        if (error && typeof error.message === 'string' && error.message.startsWith('❌')) {
-            throw error;
-        }
-
-        if (error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
-            const erro = new Error('⏰ Tempo limite excedido. O servidor demorou muito para responder.');
-            this.ultimoErro = erro;
-            this.conectado = false;
-            if (onError) onError(erro);
-            throw erro;
-        }
-
-        const erro = new Error('🚫 Falha na conexão com o servidor. Verifique sua internet.');
-        this.ultimoErro = erro;
-        this.conectado = false;
-        if (onError) onError(erro);
-        throw erro;
     }
-}
 
     /**
      * Verifica o status de uma correção
@@ -232,7 +250,10 @@ class ApiService {
 
             const url = `${this.baseUrl}${this.endpoints.status}/${id}`;
             const response = await fetch(url, {
-                headers: this.headers,
+                headers: {
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'  // 🔑 CRUCIAL para ngrok
+                },
                 signal: AbortSignal.timeout(10000)
             });
 
@@ -264,6 +285,9 @@ class ApiService {
 
             const url = `${this.baseUrl}${this.endpoints.download}/${id}?formato=${formato}`;
             const response = await fetch(url, {
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'  // 🔑 CRUCIAL para ngrok
+                },
                 signal: AbortSignal.timeout(30000)
             });
 
