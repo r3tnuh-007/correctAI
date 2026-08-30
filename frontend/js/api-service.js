@@ -93,7 +93,9 @@ class ApiService {
             rigor: config.rigor || 'equilibrado',
             tolerancia: config.tolerancia || 30,
             notaMax: config.notaMax || 20,
-            metricas: Array.isArray(config.metricas) ? config.metricas : ['conteudo', 'raciocinio'],
+            metricas: Array.isArray(config.metricas)
+                ? config.metricas
+                : Object.keys(config.metricas || {}).filter((nomeMetrica) => config.metricas[nomeMetrica]),
             criterios: config.criterios || ''
         };
         formData.append('config', JSON.stringify(configData));
@@ -432,7 +434,6 @@ async function enviarProvaParaCorrecao(prova, ficheiros, config, chave = null) {
             if (typeof mostrarToast === 'function') {
                 mostrarToast(`❌ ${erro.message}`);
             }
-            throw erro;
         }
     };
 

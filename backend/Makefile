@@ -5,12 +5,10 @@ all: $(NAME)
 
 
 $(NAME):
-	@python main.py 
+	@python main.py
 
 
 install:
-	@python3 -m venv .venv
-	@source .venv/bin/activate
 	@pip install -r requirements.txt
 	@sleep 1.5s
 	@clear

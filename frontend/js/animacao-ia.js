@@ -1,26 +1,48 @@
 /* ============================================================
    ANIMAÇÃO IA AJUDANDO HUMANO
-   Versão simplificada e funcional
+   Suporta idioma (PT/EN) e um modo compacto para ser embutida
+   na página principal (hero) além da página de demonstração.
    ============================================================ */
 
 (function() {
     'use strict';
 
+    const MENSAGENS = {
+        pt: [
+            { emoji: '🧠', texto: 'Analisando sua prova...', titulo: '🔍 A IA está a analisar...', subtitulo: 'A ler a sua prova com atenção' },
+            { emoji: '⚡', texto: 'Processando dados...', titulo: '⚡ Processando dados...', subtitulo: 'A IA está a trabalhar para si' },
+            { emoji: '🤖', texto: 'Corrigindo respostas...', titulo: '🤖 A IA está a corrigir...', subtitulo: 'A aplicar os critérios de avaliação' },
+            { emoji: '✨', texto: 'Quase pronto!', titulo: '✨ Quase pronto!', subtitulo: 'A IA está a finalizar a correção' },
+            { emoji: '🎯', texto: 'Ajustando detalhes...', titulo: '🎯 Ajustando detalhes...', subtitulo: 'A IA está a refinar a nota' },
+            { emoji: '✅', texto: 'Corrigido com sucesso!', titulo: '✅ Corrigido com sucesso!', subtitulo: 'A IA concluiu a correção da sua prova' }
+        ],
+        en: [
+            { emoji: '🧠', texto: 'Analysing your exam...', titulo: '🔍 The AI is analysing...', subtitulo: 'Reading your exam carefully' },
+            { emoji: '⚡', texto: 'Processing data...', titulo: '⚡ Processing data...', subtitulo: 'The AI is working for you' },
+            { emoji: '🤖', texto: 'Grading answers...', titulo: '🤖 The AI is grading...', subtitulo: 'Applying the grading criteria' },
+            { emoji: '✨', texto: 'Almost there!', titulo: '✨ Almost there!', subtitulo: 'The AI is finishing up the grading' },
+            { emoji: '🎯', texto: 'Fine-tuning details...', titulo: '🎯 Fine-tuning details...', subtitulo: 'The AI is refining the score' },
+            { emoji: '✅', texto: 'Graded successfully!', titulo: '✅ Graded successfully!', subtitulo: 'The AI finished grading your exam' }
+        ]
+    };
+
+    function idiomaPorDefeito() {
+        if (typeof window.idiomaAtual === 'function') {
+            const idioma = window.idiomaAtual();
+            if (idioma === 'pt' || idioma === 'en') return idioma;
+        }
+        return 'en';
+    }
+
     class AnimacaoIA {
-        constructor(container) {
+        constructor(container, opcoes = {}) {
             this.container = container;
+            this.compacto = !!opcoes.compacto;
             this.estaAtiva = false;
             this.intervaloMensagem = null;
             this.indiceMensagem = 0;
-
-            this.mensagens = [
-                { emoji: '🧠', texto: 'Analisando sua prova...', titulo: '🔍 A IA está a analisar...', subtitulo: 'A ler a sua prova com atenção' },
-                { emoji: '⚡', texto: 'Processando dados...', titulo: '⚡ Processando dados...', subtitulo: 'A IA está a trabalhar para si' },
-                { emoji: '🤖', texto: 'Corrigindo respostas...', titulo: '🤖 A IA está a corrigir...', subtitulo: 'A aplicar os critérios de avaliação' },
-                { emoji: '✨', texto: 'Quase pronto!', titulo: '✨ Quase pronto!', subtitulo: 'A IA está a finalizar a correção' },
-                { emoji: '🎯', texto: 'Ajustando detalhes...', titulo: '🎯 Ajustando detalhes...', subtitulo: 'A IA está a refinar a nota' },
-                { emoji: '✅', texto: 'Corrigido com sucesso!', titulo: '✅ Corrigido com sucesso!', subtitulo: 'A IA concluiu a correção da sua prova' }
-            ];
+            this.idioma = opcoes.idioma === 'pt' || opcoes.idioma === 'en' ? opcoes.idioma : idiomaPorDefeito();
+            this.mensagens = MENSAGENS[this.idioma];
         }
 
         iniciar() {
@@ -42,6 +64,17 @@
             }
         }
 
+        /**
+         * Troca o idioma das mensagens em tempo real (usado quando o
+         * botão de idioma da página principal é acionado).
+         */
+        mudarIdioma(idioma) {
+            if (idioma !== 'pt' && idioma !== 'en') return;
+            this.idioma = idioma;
+            this.mensagens = MENSAGENS[this.idioma];
+            this.atualizarMensagem(this.indiceMensagem);
+        }
+
         renderizar() {
             if (!this.container) return;
 
@@ -50,7 +83,9 @@
 
             // Cria a estrutura
             const wrapper = document.createElement('div');
-            wrapper.className = 'animacao-ia';
+            wrapper.className = this.compacto ? 'animacao-ia animacao-ia--compacto' : 'animacao-ia';
+
+            const primeiraMensagem = this.mensagens[0];
 
             wrapper.innerHTML = `
                 <div class="animacao-ia__cena">
@@ -69,20 +104,23 @@
                         <div class="particula"></div>
                     </div>
 
+                    <div class="animacao-ia__ligacao"></div>
+                    <div class="animacao-ia__faisca"></div>
+
                     <div class="animacao-ia__ia" id="iaIcone">🤖</div>
                     <div class="animacao-ia__humano" id="humanoIcone">🧑‍💻</div>
 
                     <div class="animacao-ia__bolha" id="bolhaDialogo">
                         <p class="animacao-ia__bolha-texto">
-                            <span class="animacao-ia__bolha-emoji" id="bolhaEmoji">💡</span>
-                            <span id="bolhaTexto">Analisando sua prova...</span>
+                            <span class="animacao-ia__bolha-emoji" id="bolhaEmoji">${primeiraMensagem.emoji}</span>
+                            <span id="bolhaTexto">${primeiraMensagem.texto}</span>
                         </p>
                     </div>
                 </div>
 
                 <div class="animacao-ia__mensagem">
-                    <h2 class="animacao-ia__titulo" id="tituloAnimacao">🔍 A IA está a analisar...</h2>
-                    <p class="animacao-ia__subtitulo" id="subtituloAnimacao">A ler a sua prova com atenção</p>
+                    <h2 class="animacao-ia__titulo" id="tituloAnimacao">${primeiraMensagem.titulo}</h2>
+                    <p class="animacao-ia__subtitulo" id="subtituloAnimacao">${primeiraMensagem.subtitulo}</p>
                 </div>
 
                 <div class="animacao-ia__progresso">
@@ -93,14 +131,14 @@
             this.container.appendChild(wrapper);
 
             // Salva referências
-            this.bolhaEmoji = document.getElementById('bolhaEmoji');
-            this.bolhaTexto = document.getElementById('bolhaTexto');
-            this.titulo = document.getElementById('tituloAnimacao');
-            this.subtitulo = document.getElementById('subtituloAnimacao');
-            this.barraProgresso = document.getElementById('barraProgresso');
-            this.iaIcone = document.getElementById('iaIcone');
-            this.humanoIcone = document.getElementById('humanoIcone');
-            this.bolhaDialogo = document.getElementById('bolhaDialogo');
+            this.bolhaEmoji = wrapper.querySelector('#bolhaEmoji');
+            this.bolhaTexto = wrapper.querySelector('#bolhaTexto');
+            this.titulo = wrapper.querySelector('#tituloAnimacao');
+            this.subtitulo = wrapper.querySelector('#subtituloAnimacao');
+            this.barraProgresso = wrapper.querySelector('#barraProgresso');
+            this.iaIcone = wrapper.querySelector('#iaIcone');
+            this.humanoIcone = wrapper.querySelector('#humanoIcone');
+            this.bolhaDialogo = wrapper.querySelector('#bolhaDialogo');
         }
 
         iniciarCicloMensagens() {
@@ -191,8 +229,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('animacaoContainer');
         if (container) {
-            const animacao = new AnimacaoIA(container);
+            const compacto = container.hasAttribute('data-compacto');
+            const animacao = new AnimacaoIA(container, { compacto });
             animacao.iniciar();
+            // Guarda a instância para permitir sincronizar o idioma
+            // com o botão 🌐 PT/EN da página principal.
+            window.animacaoIAInstancia = animacao;
         }
     });
 
