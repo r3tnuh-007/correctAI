@@ -280,7 +280,7 @@ const TRADUCOES = {
       "Got it! I can help you adjust grading criteria, explain scores, or review the answer key. What exactly do you need?",
 
     toastProvaEnviada: "{nome}'s exam was submitted for grading.",
-    toastCorrecaoConcluida: "✅ Grading complete: {nome} scored {nota}/{max}.",
+    toastCorrecaoConcluida: "🟢 Grading complete: {nome} scored {nota}/{max}.",
     toastCorrecaoErro: "❌ Could not grade {nome}'s exam: {mensagem}",
     toastSemCameraSuporte: "Your browser doesn't support camera access.",
     toastFotoCapturada: "📸 Photo captured successfully!",
@@ -292,7 +292,7 @@ const TRADUCOES = {
     toastSemProvasExportar: "There are no completed exams to export.",
     toastSemProvasCorrigidas: "There are no graded exams yet to export.",
     toastLoteEnviado: "Batch with {n} exam(s) submitted for grading.",
-    toastLoteConcluido: "✅ Batch complete! Report available.",
+    toastLoteConcluido: "🟢 Batch complete! Report available.",
 
     erroApenasPdf: "Only PDF files are accepted.",
     erroAlgunsIgnorados: "Some files were ignored: only images are accepted.",

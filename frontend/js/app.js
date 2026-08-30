@@ -103,7 +103,7 @@ window.baixarCsv = baixarCsv;
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function() {
-  console.log("🚀 Inicializando CorretorIA...");
+  console.log("🌕 Inicializando CorretorIA...");
 
   // 1. Iniciar idioma
   if (typeof iniciarIdioma === 'function') {
@@ -173,5 +173,5 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  console.log("✅ CorretorIA inicializado com sucesso!");
+  console.log("🟢 CorretorIA inicializado com sucesso!");
 });

@@ -64,13 +64,13 @@ class ApiService {
                 signal: AbortSignal.timeout(5000)
             });
 
-            console.log(`📡 Health check status: ${response.status}`);
+            console.log(`🌕 Health check status: ${response.status}`);
 
             // Verifica se a resposta é JSON (e não a página de aviso do ngrok)
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
                 const data = await response.json();
-                console.log('✅ Health check bem-sucedido:', data);
+                console.log('🟢 Health check bem-sucedido:', data);
                 this.conectado = true;
                 this.ultimoErro = null;
                 return true;
@@ -85,7 +85,7 @@ class ApiService {
         } catch (error) {
             this.conectado = false;
             this.ultimoErro = error;
-            console.error('❌ Erro ao verificar conexão:', error.message);
+            console.error('🚫 Erro ao verificar conexão:', error.message);
             return false;
         } finally {
             this.verificandoConexao = false;
@@ -127,6 +127,7 @@ class ApiService {
         if (chave) {
             // Opção 1: Adicionar como imagens adicionais com um identificador
             // Ou criar um novo endpoint que aceite chave
+            alert("⚠️ Chave de correção não é suportada pelo backend atual");
             console.warn('⚠️ Chave de correção não é suportada pelo backend atual');
         }
 
