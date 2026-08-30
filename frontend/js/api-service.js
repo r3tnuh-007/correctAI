@@ -98,57 +98,40 @@ class ApiService {
     prepararDadosParaAPI(prova, ficheiros, config, chave = null) {
         const formData = new FormData();
 
-        // 1. Dados do estudante
-        formData.append('id', prova.id || Date.now());
-        formData.append('nome', prova.nome || '');
-        formData.append('numero', prova.numero || '');
-        formData.append('tipo', prova.tipo || 'pdf');
-
-        // 2. Configurações de correção
-        const configData = {
-            rigor: config.rigor || 'equilibrado',
-            tolerancia: config.tolerancia || 30,
-            notaMax: config.notaMax || 20,
-            metricas: Array.isArray(config.metricas)
-                ? config.metricas
-                : Object.keys(config.metricas || {}).filter((nomeMetrica) => config.metricas[nomeMetrica]),
-            criterios: config.criterios || ''
+        // 1. Prepara os dados do estudante no formato JSON esperado pelo backend
+        const studentData = {
+            student_name: prova.nome || '',
+            id: prova.numero || String(Date.now()),
+            submission_time: new Date().toISOString(),
+            class: prova.turma || '',
+            subject: prova.disciplina || '',
+            observations: `Número: ${prova.numero || ''}, Tipo: ${prova.tipo || 'foto'}`
         };
-        formData.append('config', JSON.stringify(configData));
 
-        // 3. Arquivos da prova
-        if (prova.tipo === 'pdf') {
-            if (ficheiros && ficheiros.length > 0) {
-                formData.append('prova', ficheiros[0]);
-            } else {
-                throw new Error('Nenhum arquivo PDF anexado');
-            }
+        // Adiciona os dados do estudante como JSON string
+        formData.append('student_data', JSON.stringify(studentData));
+
+        // 2. Adiciona as imagens (campo 'images' como esperado pelo backend)
+        if (ficheiros && ficheiros.length > 0) {
+            // Para cada arquivo, adiciona no campo 'images'
+            ficheiros.forEach((foto, index) => {
+                // O nome do campo DEVE ser 'images' para todos os arquivos
+                formData.append('images', foto);
+            });
         } else {
-            if (ficheiros && ficheiros.length > 0) {
-                ficheiros.forEach((foto, index) => {
-                    formData.append(`prova_${index}`, foto);
-                });
-                formData.append('total_paginas', ficheiros.length);
-            } else {
-                throw new Error('Nenhuma foto anexada');
-            }
+            throw new Error('Nenhum arquivo anexado');
         }
 
-        // 4. Chave de correção (se existir)
+        // 3. Adiciona a chave de correção (se existir) como imagens adicionais
+        // NOTA: O backend atual não suporta chave separada, você precisa adaptar
         if (chave) {
-            if (chave.tipo === 'pdf' && chave.pdf) {
-                formData.append('chave', chave.pdf);
-            } else if (chave.tipo === 'foto' && chave.fotos && chave.fotos.length > 0) {
-                chave.fotos.forEach((foto, index) => {
-                    formData.append(`chave_${index}`, foto);
-                });
-                formData.append('total_chave_paginas', chave.fotos.length);
-            }
-            formData.append('chave_tipo', chave.tipo);
+            // Opção 1: Adicionar como imagens adicionais com um identificador
+            // Ou criar um novo endpoint que aceite chave
+            console.warn('⚠️ Chave de correção não é suportada pelo backend atual');
         }
 
-        // 5. Timestamp
-        formData.append('timestamp', new Date().toISOString());
+        // 4. Timestamp (já incluído no student_data)
+        // formData.append('timestamp', new Date().toISOString());
 
         return formData;
     }

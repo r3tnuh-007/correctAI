@@ -64,10 +64,8 @@ def validate_student_data(data: dict) -> tuple:
         return "Submission time is required", None
     # Extract fields
     nome_aluno = data.get("student_name")
-    aluno_id = data.get("id")
+    aluno_id = data.get("Número")
     submission_time = data.get("submission_time")
-    turma = data.get("class")
-    disciplina = data.get("subject")
     observacoes = data.get("observations")
     # Convert submission_time to datetime object
     if submission_time:
@@ -82,8 +80,6 @@ def validate_student_data(data: dict) -> tuple:
         "student_name": nome_aluno,
         "id": aluno_id,
         "submission_time": str(submission_time),
-        "class": turma,
-        "subject": disciplina,
         "observations": observacoes
     }
     return None, dados_validados
@@ -128,7 +124,7 @@ please indicate that in your evaluation, and an answer cannot be validate if you
 **student's exam:** {student_exam}
 Answer:"""
     try:
-        response = await llm.invoke(prompt)
+        response = llm.invoke(prompt)
         print(f"{VERMELHO}[LOG]  LLM response: {response.content}{RESET}")
         return response.content
     except Exception as e:
@@ -174,9 +170,9 @@ async def image_handler(file: UploadFile, student_id: str, submission_time: date
 async def health_check():
     status = {
         "status": "ok",
-        "chromadb": "conectado" if collection else "desconectado",
-        "timestamp": datetime.now().isoformat(),
-        "documentos": collection.count() if collection else 0,
+        "chromadb": "conectado",
+        "timestamp": str(datetime.now()),
+        "documentos": "0",
     }
     return status
 
@@ -265,17 +261,19 @@ async def upload_image(
 
 @app.post("/images-upload")
 async def upload_multiple_images(
-    student_data: str = Form(..., description="Student data in JSON format"),
+    student_data: str = Form(..., description="Lista de dados dos alunos em formato JSON"),
     images: List[UploadFile] = File(
         ...,
-        description="List of images to upload (max. 10)"
+        description="Lista de imagens para upload (máx. 10)"
     )
 ):
     """
     Endpoint for uploading multiple images with JSON data
     """
+    print(f"\n\n\n{VERDE}[Student Data Received]{RESET} {student_data}\n")
     try:
         try:
+            print(f"{VERDE}[Parsing Student Data]{RESET}\n")
             student_data_dict = json.loads(student_data)
         except json.JSONDecodeError as e:
             raise HTTPException(
@@ -283,7 +281,10 @@ async def upload_multiple_images(
                 detail=f"Invalid JSON: {str(e)}"
             )
         # Validate student data and images
+        print(f"{VERDE}[Validating Student Data]{RESET}\n")
         erro, dados_aluno = validate_student_data(student_data_dict)
+        print(f"\n{VERDE} === [Validation Result] ==={RESET}\n{AZUL}{erro, dados_aluno}{RESET}\n")
+
         if erro:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -328,7 +329,7 @@ async def upload_multiple_images(
             print(f"Error processing exam key: {str(e)}")
             key_exam = ""
         print(f"\n\n\n{VERDE} === [Exam Key] ==={RESET}\n{AZUL}{key_exam}{RESET}\n")
-        evaluation = comparator(exam, key_exam)
+        evaluation = await comparator(exam, key_exam)
         print(f"\n\n\n{VERDE} === [Evaluation] ==={RESET}\n{AZUL}{evaluation}{RESET}\n")
         # Return the response with student data, summary, results, and errors
         return JSONResponse(
@@ -343,7 +344,7 @@ async def upload_multiple_images(
                 },
                 "results": resultados,
                 "errors": erros if erros else None,
-                "evaluation": evaluation.content,
+                "evaluation": evaluation,
                 "exam": exam
             }
         )    
