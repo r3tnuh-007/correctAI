@@ -127,7 +127,10 @@ class ApiService {
         if (chave) {
             // Opção 1: Adicionar como imagens adicionais com um identificador
             // Ou criar um novo endpoint que aceite chave
-            alert("⚠️ Chave de correção não é suportada pelo backend atual");
+            chave.forEach((foto, index) => {
+                // O nome do campo DEVE ser 'chave' para todos os arquivos
+                formData.append('chave', foto);
+            });
             console.warn('⚠️ Chave de correção não é suportada pelo backend atual');
         }
 
@@ -306,7 +309,7 @@ class ApiService {
 
     setBaseUrl(url) {
         this.baseUrl = url;
-        console.log('✅ URL da API atualizada:', url);
+        console.log('🟢 URL da API atualizada:', url);
     }
 
     setTimeout(ms) {

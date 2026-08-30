@@ -88,7 +88,7 @@ async def process_image(img_pth: str):
         img = Image.open(img_pth)
         #img.show()
     except:
-        print("nao abriu a imagem!")
+        print(f"{VERMELHO}[LOG (process_image)]\n{RESET}{AZUL}nao abriu a imagem: {img_pth}!{RESET}")
         return None
     page_query = generate_query(img)
     response = queryExtractText(page_query)

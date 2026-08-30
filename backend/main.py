@@ -322,6 +322,7 @@ async def upload_multiple_images(
         print(f"\n\n\n{VERDE} === [Complete Exam for the student] ==={RESET}\n{AZUL}{exam}{RESET}\n")
         try:
             key_exam = await process_image(str(EXAM_KEY))
+            print(f"\n\n\n{VERDE} === [Exam Key] ==={RESET}\n{AZUL}{key_exam}{RESET}\n")
         except Exception as e:
             print(f"Error processing exam key: {str(e)}")
             key_exam = ""
