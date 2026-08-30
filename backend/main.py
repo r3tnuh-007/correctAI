@@ -64,7 +64,7 @@ def validate_student_data(data: dict) -> tuple:
         return "Submission time is required", None
     # Extract fields
     nome_aluno = data.get("student_name")
-    aluno_id = data.get("Número")
+    aluno_id = data.get("id")
     submission_time = data.get("submission_time")
     observacoes = data.get("observations")
     # Convert submission_time to datetime object
@@ -345,6 +345,7 @@ async def upload_multiple_images(
                 "results": resultados,
                 "errors": erros if erros else None,
                 "evaluation": evaluation,
+                "nota": 15,
                 "exam": exam
             }
         )    
