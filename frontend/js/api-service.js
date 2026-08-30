@@ -356,13 +356,14 @@ async function enviarProvaParaCorrecao(prova, ficheiros, config, chave = null) {
             }
         },
         onComplete: (resposta) => {
-            console.log('✅ Correção concluída:', resposta);
+            console.log('🟢 Correção concluída:', resposta);
+            alert('🟢 Correção concluída com sucesso!\n' + resposta.evaluation);
             return resposta;
         },
         onError: (erro) => {
-            console.error('❌ Erro:', erro.message);
+            console.error('🚫 Erro:', erro.message);
             if (typeof mostrarToast === 'function') {
-                mostrarToast(`❌ ${erro.message}`);
+                mostrarToast(`🚫 ${erro.message}`);
             }
         }
     };

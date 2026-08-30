@@ -14,7 +14,7 @@
             { emoji: '🤖', texto: 'Corrigindo respostas...', titulo: '🤖 A IA está a corrigir...', subtitulo: 'A aplicar os critérios de avaliação' },
             { emoji: '✨', texto: 'Quase pronto!', titulo: '✨ Quase pronto!', subtitulo: 'A IA está a finalizar a correção' },
             { emoji: '🎯', texto: 'Ajustando detalhes...', titulo: '🎯 Ajustando detalhes...', subtitulo: 'A IA está a refinar a nota' },
-            { emoji: '✅', texto: 'Corrigido com sucesso!', titulo: '✅ Corrigido com sucesso!', subtitulo: 'A IA concluiu a correção da sua prova' }
+            { emoji: '✅', texto: 'Corrigido com sucesso!', titulo: '🟢 Corrigido com sucesso!', subtitulo: 'A IA concluiu a correção da sua prova' }
         ],
         en: [
             { emoji: '🧠', texto: 'Analysing your exam...', titulo: '🔍 The AI is analysing...', subtitulo: 'Reading your exam carefully' },
@@ -22,7 +22,7 @@
             { emoji: '🤖', texto: 'Grading answers...', titulo: '🤖 The AI is grading...', subtitulo: 'Applying the grading criteria' },
             { emoji: '✨', texto: 'Almost there!', titulo: '✨ Almost there!', subtitulo: 'The AI is finishing up the grading' },
             { emoji: '🎯', texto: 'Fine-tuning details...', titulo: '🎯 Fine-tuning details...', subtitulo: 'The AI is refining the score' },
-            { emoji: '✅', texto: 'Graded successfully!', titulo: '✅ Graded successfully!', subtitulo: 'The AI finished grading your exam' }
+            { emoji: '✅', texto: 'Graded successfully!', titulo: '🟢 Graded successfully!', subtitulo: 'The AI finished grading your exam' }
         ]
     };
 
