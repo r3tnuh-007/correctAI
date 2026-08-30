@@ -13,7 +13,7 @@ class ApiService {
         // ==========================================
         // CONFIGURAÇÕES DA API
         // ==========================================
-        this.baseUrl = 'https://sua-api.com/api'; // ALTERE PARA SUA URL
+        this.baseUrl = 'https://canned-tainted-washstand.ngrok-free.dev'; // ALTERE PARA SUA URL
         this.timeout = 300000; // 5 minutos
 
         // Endpoints
