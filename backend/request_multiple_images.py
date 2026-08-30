@@ -2,8 +2,6 @@ import json
 import requests
 
 
-
-
 url = "http://10.0.2.15:8000/images-upload"
 # Dados do aluno em JSON
 student_data = {
@@ -16,9 +14,9 @@ student_data = {
 }
 # Lista de arquivos
 files = [
-    ("images", ("foto1.jpg", open("caligrafia 1.jpeg", "rb"), "image/jpeg")),
-    ("images", ("foto2.png", open("caligrafia 2.jpg", "rb"), "image/jpg")),
-    ("images", ("foto3.jpg", open("caligrafia 3.jpg", "rb"), "image/jpg"))
+    ("images", ("foto1.jpg", open("img/prova 1.jpg", "rb"), "image/jpg")),
+    ("images", ("foto2.png", open("img/prova 2.jpg", "rb"), "image/jpg")),
+    ("images", ("foto3.jpg", open("img/prova 3.jpg", "rb"), "image/jpg"))
 ]
 # Envia a requisição
 response = requests.post(
