@@ -170,6 +170,11 @@ h3 {
 
   font-size: 0.95rem;
 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+
   transition: var(--transicao);
 }
 
@@ -878,14 +883,26 @@ h3 {
 
   width: 2.5rem;
   height: 2.5rem;
+  padding: 0;
 
   border-radius: 10px;
 
   font-size: 1rem;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
 
   transition: var(--transicao);
+}
+
+/* Botão de idioma tem texto (EN/PT) além do ícone, por isso precisa de largura livre */
+#btnIdioma.btn--icone {
+  width: auto;
+  padding: 0 0.7rem;
+  gap: 0.35rem;
 }
 
 .btn--icone:hover {
@@ -1085,6 +1102,10 @@ h3 {
   border-radius: 0 12px 12px 0;
 
   padding: 0.75rem 0.9rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   font-size: 1.1rem;
 
@@ -2020,4 +2041,23 @@ h3 {
     min-height: 90px;
   }
 
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+
+    display: inline-block;
+    vertical-align: middle;
+
+    /* SVG embutido diretamente no HTML: herda a cor do texto do botão
+       via currentColor (fill/stroke), por isso acompanha o tema claro/escuro
+       automaticamente através das variáveis --texto / --acento-texto. */
+    color: currentColor;
+}
+
+.icon--sm {
+    width: 16px;
+    height: 16px;
 }

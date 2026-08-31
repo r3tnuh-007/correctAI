@@ -51,8 +51,9 @@ function aplicarTema(tema) {
   document.documentElement.setAttribute("data-theme", tema);
   const btnTema = document.getElementById("btnTema");
   if (btnTema) {
+    // O botão mantém o mesmo ícone (SVG via máscara + currentColor), que já se
+    // adapta sozinho à cor do tema ativo — só o texto acessível muda de estado.
     const paraClaro = tema === "dark";
-    btnTema.textContent = paraClaro ? "☀️" : "🌙";
     btnTema.setAttribute("aria-label", paraClaro ? "Activar modo claro" : "Activar modo escuro");
     btnTema.title = paraClaro ? "Modo claro" : "Modo escuro";
   }

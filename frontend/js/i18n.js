@@ -10,7 +10,7 @@ const TRADUCOES = {
     headerChatTitle: "Chat com a IA",
     headerConfigAria: "Abrir configurações",
     headerConfigTitle: "Configurações",
-    headerNovaProva: "+ Nova prova",
+    headerNovaProva: "Nova prova",
     temaAtivarClaro: "Activar modo claro",
     temaAtivarEscuro: "Activar modo escuro",
     temaClaro: "Modo claro",
@@ -30,7 +30,7 @@ const TRADUCOES = {
     modoLote: "📚 Correção em lote",
 
     filaTitulo: "Provas em análise",
-    filaExportar: "⬇ Exportar tudo (CSV)",
+    filaExportar: "Exportar tudo (CSV)",
     cardExportar: "⬇ Exportar CSV",
     cardTentarNovamente: "🔁 Tentar novamente",
     cardRemover: "🗑 Remover",
@@ -84,7 +84,7 @@ const TRADUCOES = {
     relColNumero: "Número",
     relColNota: "Nota",
     relColPercentagem: "Percentagem",
-    relatorioExportar: "⬇ Exportar relatório (CSV)",
+    relatorioExportar: "Exportar relatório (CSV)",
     relatorioSubTexto: "{n} prova(s) corrigida(s) nesta correção em lote.",
     relatorioMedia: "Média percentual da turma: {valor}%",
     relatorioMediaSub: "Baseado em {n} prova(s) corrigida(s).",
@@ -163,7 +163,7 @@ const TRADUCOES = {
     headerChatTitle: "AI chat",
     headerConfigAria: "Open settings",
     headerConfigTitle: "Settings",
-    headerNovaProva: "+ New exam",
+    headerNovaProva: "New exam",
     temaAtivarClaro: "Switch to light mode",
     temaAtivarEscuro: "Switch to dark mode",
     temaClaro: "Light mode",
@@ -183,7 +183,7 @@ const TRADUCOES = {
     modoLote: "📚 Batch grading",
 
     filaTitulo: "Exams being analysed",
-    filaExportar: "⬇ Export all (CSV)",
+    filaExportar: "Export all (CSV)",
     cardExportar: "⬇ Export CSV",
     cardTentarNovamente: "🔁 Try again",
     cardRemover: "🗑 Remove",
@@ -238,7 +238,7 @@ const TRADUCOES = {
     relColNumero: "ID",
     relColNota: "Score",
     relColPercentagem: "Percentage",
-    relatorioExportar: "⬇ Export report (CSV)",
+    relatorioExportar: "Export report (CSV)",
     relatorioSubTexto: "{n} exam(s) graded in this batch correction.",
     relatorioMedia: "Class percentage average: {valor}%",
     relatorioMediaSub: "Based on {n} graded exam(s).",
@@ -355,12 +355,15 @@ function aplicarTraducoes() {
 
 function atualizarBotaoIdioma(btnIdioma) {
   if (!btnIdioma) return;
+  // O ícone (globo) é fixo no HTML; aqui só atualizamos o texto interno
+  // e os rótulos de acessibilidade, sem apagar o ícone do botão.
+  const textoBotao = document.getElementById("textoBotaoIdioma");
   if (idiomaAtual === "pt") {
-    btnIdioma.textContent = "🌐 EN";
+    if (textoBotao) textoBotao.textContent = "EN";
     btnIdioma.title = "Switch to English";
     btnIdioma.setAttribute("aria-label", "Switch to English");
   } else {
-    btnIdioma.textContent = "🌐 PT";
+    if (textoBotao) textoBotao.textContent = "PT";
     btnIdioma.title = "Mudar para português";
     btnIdioma.setAttribute("aria-label", "Mudar para português");
   }
