@@ -439,6 +439,12 @@ h3 {
   color: var(--sucesso);
 }
 
+.estado--concluido.nota-baixa {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--erro);
+  font-weight: 700;
+}
+
 .estado--erro {
   background: rgba(248, 113, 113, 0.12);
   color: var(--erro);

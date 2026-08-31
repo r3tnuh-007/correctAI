@@ -102,7 +102,10 @@ function atualizarProvaNaFila(prova) {
     return;
   }
 
+  const notaBaixa = Number(prova.nota) < Number(config.notaMax) * 0.5;
+
   estadoEl.classList.add("estado--concluido");
+  estadoEl.classList.toggle("nota-baixa", notaBaixa);
   estadoEl.textContent = t("estadoNota", { nota: prova.nota, max: config.notaMax });
 
   const acoes = document.createElement("div");
