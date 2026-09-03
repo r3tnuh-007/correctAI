@@ -1,4 +1,5 @@
 # correctAI
+
 correctAI will be our application powered by AI for the Hackathon Prometheus August AI Challenge
 # Exam correction system - correctAI 🌕
 ## Project Info
@@ -9,48 +10,74 @@ correctAI will be our application powered by AI for the Hackathon Prometheus Aug
 
 **Architecture Pattern:** ***MVC - Model(Midleware) View Controller ⚠️***
 
-**Description:** _Uma plataforma que ajuda os usuários a localizarem alguém perdido por meio de reconhecimento <br>
-facial. Se alguém desapareceu, na vida real, o usuário vai na plataforma e publica uma foto da pessoa desaparecida<br>
-e as suas informações de contacto. Se alguém encontrar alguém perdido que por algum motivo não consiga se comunicar, <br>
-ou os responsáveis por essa pessoa não aparecem basta tirar uma foto da pessoa e colocar ela na categoria de encontrada, <br>
-o sistema por meio de reconhecimento facial fará o match do rosto, caso o rosto perdido esteja na base de dados de <br>
-rostos encontrados notifica os usuários._
+**Description:** _CorrectAI is an AI-powered web application designed to automatically grade <br>
+handwritten exams. It combines a **FastAPI** backend with a lightweight **HTML/CSS/JS** frontend to provide <br> 
+an end-to-end solution for digitizing and correcting handwritten answer sheets._
 
 
-## Instalation
+
+## 🚀 Features
+
+**Handwritten Exam Upload** – Upload scanned or photographed handwritten exams.
+**AI-Based Correction** – Uses machine learning models to evaluate answers (text recognition + grading logic).
+**Fast & Asynchronous** – Built with FastAPI for high-performance async processing.
+**Simple Frontend** – Pure HTML, CSS, and JavaScript for easy deployment and customization.
+**Results Dashboard** – View corrected scores and feedback per student.
+
+---
+
+## Tech Stack
+
+| Layer       | Technology                         |
+|-------------|------------------------------------|
+| Backend     | Python 3.10+ + FastAPI             |
+| AI/ML       | zai-org/GLM-OCR                    |
+| Frontend    | HTML5, CSS3, Vanilla JS            |
+| Server      | Uvicorn (backend), HTTP.server (frontend) |
+
+---
+
+
+---
+
+## 🧪 Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+- `pip` (Python package manager)
+- Modern web browser
+
+---
+
+### 🔧 Backend Setup (FastAPI + Uvicorn)
+
+1. **Clone the repository and execute the backend server**
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/active
-pip install -r requirements.txt
-python3 main.py
+   git clone https://github.com/r3tnuh-007/correctAI.git
+   cd correctAI/backend
+   make install
+   make
 ```
 
 
-## Uvicorn Instrutions
 
-### Development mode (with auto reload)
+### 🔧 Frontend Setup (HTML, CSS, JavaScript)
+
+1. **Clone the repository and execute the backend server**
 ```bash
-# Reload automatically some file changes
-uvicorn main:app --reload
-
-# Specifying the host and the port
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-# With more log details
-uvicorn main:app --reload --log-level debug
-```
-### Explanation
-```text
-uvicorn main:app
-         │    │
-         │    └─ Variable's name/FastAPI instancy inside the file
-         └────── Python filename (without the .py)
+   cd ../frontend
+   python -m http.server 4242
 ```
 
+## License
 
-### Performance parameters
+_Distributed under the MIT License. See LICENSE for more information._
 
+
+## Contact
+
+Antero Luis – anterofranciso@gmail.com
 
 
 ## Emojis that will be used on the project
