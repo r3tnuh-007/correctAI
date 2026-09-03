@@ -16,7 +16,7 @@ an end-to-end solution for digitizing and correcting handwritten answer sheets._
 
 
 
-## 🚀 Features
+## Features
 
 **Handwritten Exam Upload** – Upload scanned or photographed handwritten exams.
 **AI-Based Correction** – Uses machine learning models to evaluate answers (text recognition + grading logic).
