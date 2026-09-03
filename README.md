@@ -75,6 +75,14 @@ an end-to-end solution for digitizing and correcting handwritten answer sheets._
 _Distributed under the MIT License. See LICENSE for more information._
 
 
+## Backend workflow
+<img width="986" height="654" alt="image" src="https://github.com/user-attachments/assets/9a0033e6-717d-4e17-a354-d2827b06f066" />
+
+
+## Frontend workflow
+<img width="1287" height="830" alt="image" src="https://github.com/user-attachments/assets/ecc35955-48ee-4c4f-9a5d-8649cd47b971" />
+
+
 ## Contact
 
 Antero Luis – anterofranciso@gmail.com
