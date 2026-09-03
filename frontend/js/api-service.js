@@ -361,7 +361,7 @@ async function enviarProvaParaCorrecao(prova, ficheiros, config, chave = null) {
         },
         onComplete: (resposta) => {
             console.log('🟢 Correção concluída:', resposta);
-            alert('🟢 Correção concluída com sucesso!\n' + resposta.evaluation);
+            // alert('🟢 Correção concluída com sucesso!\n' + resposta.evaluation);
             return resposta;
         },
         onError: (erro) => {

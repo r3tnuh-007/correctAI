@@ -29,7 +29,7 @@ IMAGES_DIR.mkdir(exist_ok=True)
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 MAX_IMAGES = 10  # Image per request limit
-EXAM_KEY = Path("exam_key/prova 1.jpg")
+EXAM_KEY = Path("exam_key/exam_key.jpg")
 
 
 app = FastAPI(title="correctAI Backend API", version="1.0.0")
@@ -116,7 +116,8 @@ Answer:"""
         prompt = f"""You are a teacher and your task is to evaluate a student's exam. 
 You must give a score between 0 and 20). 
 If the student's answer is not related to the truth or is off-topic,
-give a score of 0. OBS: split the answer this way: <reasoning> | <grade>.
+give a score of 0. OBS: split the answer this way: reasoning | grade.
+YOU MUST REPLACE THE GRADE WITH A NUMBER BETWEEN 0 AND 20, DO NOT USE WORDS.
 
 **student's exam:** {student_exam}
 Answer:"""
