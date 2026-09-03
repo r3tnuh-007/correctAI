@@ -105,7 +105,8 @@ async def comparator(student_exam: str, exam_key: str) -> str:
 on the provided exam key. You must give a score based on 
 the exam key(if available, if not, provide a general evaluation with a score between 0 and 20). 
 If the student's answer is not related to the exam key or is off-topic,
-give a score of 0. OBS: split the answer this way: <reasoning> | <grade>.
+give a score of 0. OBS: split the answer this way: reasoning | grade.
+YOU MUST REPLACE THE GRADE WITH A NUMBER BETWEEN 0 AND 20, DO NOT USE WORDS.
 
 **Exam Key:**
 {exam_key}
